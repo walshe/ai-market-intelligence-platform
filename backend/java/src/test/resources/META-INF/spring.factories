@@ -1,0 +1,2 @@
+org.springframework.test.context.ContextCustomizerFactory = \
+    com.walshe.aimarket.config.SqlTestContainersSpringContextCustomizerFactory

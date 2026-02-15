@@ -8,6 +8,7 @@ application {
     prodDatabaseType postgresql
     buildTool maven
     clientFramework no
+    skipClient true
     packageName com.walshe.aimarket
     nativeLanguage en
     languages [en]
