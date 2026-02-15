@@ -1,0 +1,35 @@
+application {
+  config {
+    baseName aiMarketIntelligence
+    applicationType monolith
+    authenticationType jwt
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+    buildTool maven
+    clientFramework no
+    packageName com.walshe.aimarket
+    nativeLanguage en
+    languages [en]
+    enableHibernateCache false
+  }
+}
+
+entity Document {
+  title String required
+  content TextBlob required
+}
+
+entity DocumentChunk {
+  chunkIndex Integer required
+  chunkText TextBlob required
+  embeddingModel String
+}
+
+relationship ManyToOne {
+  DocumentChunk{document required} to Document
+}
+
+dto * with mapstruct
+service * with serviceClass
+paginate * with no
