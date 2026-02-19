@@ -1,55 +1,165 @@
 # Implementation Plan - Story 02: Schema & Persistence
 
 ## 1. Objective
-Extend the base JHipster schema to support `pgvector` and the specific entities required for the AI Market Intelligence Platform, ensuring all schema changes are managed via a single atomic Liquibase migration.
+
+Extend the base JHipster schema to support `pgvector` and ensure persistence aligns with the architectural design.
+
+This story introduces:
+
+- pgvector extension
+- Database-managed timestamps (`DEFAULT now()`)
+- Vector storage (`vector(1536)`)
+- IVFFlat cosine index
+- Data integrity constraint on `(document_id, chunk_index)`
+
+This story does NOT introduce retrieval logic, AI services, or application-layer business logic.
+
+---
 
 ## 2. Requirements Traceability
-- [ ] Add Liquibase migration to enable `pgvector` extension in PostgreSQL.
-- [ ] Implement database defaults for `created_at` fields in `document` and `document_chunk` tables.
-- [ ] Define the `embedding` column in `document_chunk` as `vector(1536)`.
-- [ ] Create a ivfflat index (cosine similarity) on the `embedding` column.
-- [ ] Ensure the schema aligns with the details in `ARCHITECTURE.md`.
-- [ ] Verify that the application boots and Liquibase migrations run successfully.
 
-## 3. Schema Migration Approach
-All changes for Story 02 will be implemented in a single, atomic Liquibase XML changelog file located in `backend/java/src/main/resources/config/liquibase/changelog/`.
+This plan implements the following requirements:
 
-### 3.1 Step 1: Create Migration File
-- Target File: `backend/java/src/main/resources/config/liquibase/changelog/20260217213000_story_02_schema_updates.xml`.
-- The migration will use `<sql>` blocks for all PostgreSQL-specific operations to ensure compatibility with `pgvector` types and performance-optimized indexes.
+- Enable pgvector extension.
+- Enforce DB-managed timestamps.
+- Add `document_chunk.embedding` as `vector(1536)`.
+- Create an IVFFlat cosine index on `document_chunk.embedding`.
+- Add unique constraint on `(document_id, chunk_index)`.
+- Verify application boots without Liquibase errors.
 
-### 3.2 Step 2: Migration Content (Atomic ChangeSets)
-Do NOT actually put everything inside a single <changeSet>.
+---
 
+## 3. Migration Strategy
 
-1.  **Enable pgvector:**
-    - SQL: `CREATE EXTENSION IF NOT EXISTS vector;`
+All database changes will be implemented in a single new Liquibase changelog file containing multiple ordered changeSets.
 
-2.  **Update `document` Table:**
-    - SQL: `ALTER TABLE document ADD COLUMN created_at TIMESTAMPTZ DEFAULT now() NOT NULL;`
+- Target directory:
+  `backend/v2/src/main/resources/config/liquibase/changelog/`
 
-3.  **Update `document_chunk` Table:**
-    - SQL: `ALTER TABLE document_chunk ADD COLUMN created_at TIMESTAMPTZ DEFAULT now() NOT NULL;`
-    - SQL: `ALTER TABLE document_chunk ADD COLUMN embedding vector(1536);`
-    - *Note: Using `<sql>` for the `vector` type as Liquibase does not natively support it via its column DSL.*
+- File naming convention:
+  `YYYYMMDDHHMMSS_story_02_schema_updates.xml`
 
-4.  **Create Vector Index:**
-    - SQL: `CREATE INDEX idx_document_chunk_embedding
-ON document_chunk
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);`
-    - *Note: ivfflat is chosen for its maturity, lower operational complexity, and predictable behavior in moderate-scale 
-    - workloads. It provides approximate nearest neighbor search with configurable list tuning and is sufficient for 
-    - this demo-scale RAG system. HNSW offers potentially higher recall at scale but introduces additional memory 
-    - overhead and tuning considerations that are unnecessary for the current scope.
+Rules:
 
-## 4. Verification Plan
-- **Pre-check:** 
-    - Verify PostgreSQL service is running with the `pgvector/pgvector:pg15` image as defined in the root-level `docker-compose.yml`.
-- **Execution:** 
-    - Run `./mvnw liquibase:update` (from `backend/java`) or start the application to trigger automatic migration.
-- **Post-check:**
-    - Verify `document` table contains `created_at` with type `TIMESTAMPTZ` and default `now()`.
-    - Verify `document_chunk` table contains `created_at` (`TIMESTAMPTZ`) and `embedding` (`vector(1536)`).
-    - Verify index `idx_document_chunk_embedding` exists and uses the `ivfflat` access method with `vector_cosine_ops`.
-    - Check Liquibase `DATABASECHANGELOG` table to ensure the story 02 changeset was applied.
+- Each logical change must be implemented as its own `<changeSet>`.
+- PostgreSQL-specific features (pgvector type, IVFFlat index) must be implemented using `<sql>` blocks.
+- ChangeSets must be ordered to ensure dependencies apply cleanly.
+
+---
+
+## 4. Implementation Phases
+
+### Phase 1 — Enable pgvector
+
+Goal: Activate vector support in PostgreSQL.
+
+ChangeSet:
+- Execute: `CREATE EXTENSION IF NOT EXISTS vector;`
+
+Constraints:
+- Must be idempotent.
+- Must not fail if extension already exists.
+
+---
+
+### Phase 2 — Enforce Database-Managed Timestamps
+
+Goal: Move timestamp authority from application layer to database.
+
+DB Steps (Liquibase):
+- Alter `document.created_at`:
+  - Ensure type is `TIMESTAMPTZ` (only if currently different)
+  - Set `NOT NULL`
+  - Set `DEFAULT now()`
+
+- Alter `document_chunk.created_at`:
+  - Ensure type is `TIMESTAMPTZ` (only if currently different)
+  - Set `NOT NULL`
+  - Set `DEFAULT now()`
+
+Application Steps:
+- Remove any `@PrePersist` timestamp initialization logic for `createdAt`.
+- Retain entity mapping with `updatable = false`.
+
+---
+
+### Phase 3 — Add Data Integrity Constraint
+
+Goal: Prevent duplicate chunk indexes per document.
+
+ChangeSet:
+- Add unique constraint on `(document_id, chunk_index)`.
+
+Constraint name:
+- `uq_document_chunk_doc_index`
+
+---
+
+### Phase 4 — Add Embedding Column
+
+Goal: Enable vector storage for chunk embeddings.
+
+ChangeSet:
+- Add column on `document_chunk`:
+  - `embedding vector(1536)`
+
+Implementation notes:
+- Must use raw SQL in Liquibase (pgvector type support).
+- Column may be nullable for v1 (embeddings are populated in later stories).
+
+---
+
+### Phase 5 — Create IVFFlat Cosine Index
+
+Goal: Enable approximate nearest neighbor search on embeddings.
+
+ChangeSet:
+- Create index `idx_document_chunk_embedding` using IVFFlat cosine ops.
+
+Index definition (SQL):
+
+    CREATE INDEX idx_document_chunk_embedding
+    ON document_chunk
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 50);
+
+Constraints:
+- Must use `vector_cosine_ops`.
+- Must use `USING ivfflat`.
+- `lists` is fixed to 50 for moderate-scale workload.
+- Must not modify unrelated indexes.
+
+---
+
+## 5. Verification Plan
+
+### Pre-check
+- PostgreSQL is running.
+- Docker image includes pgvector support.
+
+### Execution
+- Run `./mvnw liquibase:update` from `backend/v2`, OR start the application to trigger automatic migration.
+
+### Post-check
+Verify:
+
+- pgvector extension is installed.
+- `document.created_at` is `TIMESTAMPTZ NOT NULL DEFAULT now()`.
+- `document_chunk.created_at` is `TIMESTAMPTZ NOT NULL DEFAULT now()`.
+- Unique constraint exists on `(document_id, chunk_index)`.
+- `document_chunk.embedding` exists with type `vector(1536)`.
+- `idx_document_chunk_embedding` exists and uses IVFFlat with `vector_cosine_ops`.
+- Application boots without Liquibase errors.
+- No `@PrePersist` timestamp logic remains.
+
+---
+
+## 6. Completion Criteria
+
+Story 02 is complete when:
+
+- All changeSets execute successfully.
+- Schema matches the requirements exactly.
+- Application builds and starts.
+- No unrelated modules were modified.
+- No cross-story refactoring was introduced.

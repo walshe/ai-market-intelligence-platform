@@ -30,7 +30,7 @@ public class Document implements Serializable {
 
 
     @NotNull
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable=false)
     private Instant createdAt;
 
 
@@ -119,4 +119,7 @@ public class Document implements Serializable {
             ", createdAt='" + getCreatedAt() + "'" +
             "}";
     }
+
+    @PrePersist
+    public void prePersist() { if (createdAt == null) createdAt = Instant.now(); }
 }

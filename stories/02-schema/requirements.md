@@ -1,19 +1,73 @@
 # Story 02: Schema & Persistence
 
 ## Description
-Extend the base JHipster schema to support pgvector and the specific entities required for the AI Market Intelligence Platform.
+
+Extend the base JHipster schema to support `pgvector` and ensure persistence aligns with the architectural design defined in `ARCHITECTURE.md`.
+
+This story establishes:
+
+- Vector storage using pgvector
+- Approximate nearest neighbor indexing (IVFFlat)
+- Database-managed timestamps
+- Data integrity constraints for chunked document storage
+
+This story does NOT introduce retrieval logic, AI calls, or business logic.
+
+---
 
 ## Requirements
-- [ ] Add Liquibase migration to enable `pgvector` extension in PostgreSQL.
-- [ ] Implement database defaults for `created_at` fields in `document` and `document_chunk` tables.
-- [ ] Define the `embedding` column in `document_chunk` as `vector(1536)`.
-- [ ] Create a HNSW or Ivfflat index (cosine similarity) on the `embedding` column.
-- [ ] Ensure the schema aligns with the details in `ARCHITECTURE.md`.
-- [ ] Verify that the application boots and Liquibase migrations run successfully.
+
+- [ ] Add idempotent Liquibase migration to enable the `pgvector` extension:
+  - `CREATE EXTENSION IF NOT EXISTS vector;`
+
+- [ ] Ensure `document` table:
+  - Uses existing primary key (Long ID)
+  - Contains `created_at` column:
+    - Type must be `TIMESTAMPTZ`
+    - Must be `NOT NULL`
+    - Must use `DEFAULT now()`
+  - Application-level timestamp initialization (`@PrePersist`) must be removed.
+
+- [ ] Ensure `document_chunk` table:
+  - Uses existing primary key (Long ID)
+  - Contains foreign key to `document(id)`
+  - Contains `chunk_index` (NOT NULL)
+  - Contains `chunk_text` (NOT NULL)
+  - Contains `embedding_model` (nullable VARCHAR)
+  - Contains `created_at`:
+    - Type must be `TIMESTAMPTZ`
+    - Must be `NOT NULL`
+    - Must use `DEFAULT now()`
+  - Must define unique constraint on `(document_id, chunk_index)`
+
+- [ ] Add `embedding` column to `document_chunk`:
+  - Type must be `vector(1536)`
+  - Must be created using raw SQL in Liquibase (pgvector type support)
+
+- [ ] Create IVFFlat index on `document_chunk.embedding`:
+  - Must use `USING ivfflat`
+  - Must use `vector_cosine_ops`
+  - Must define a `lists` parameter appropriate for moderate-scale workloads (e.g., 50)
+
+- [ ] Ensure schema aligns with the data model defined in `ARCHITECTURE.md`, except that IDs remain Long for v1 scope.
+
+- [ ] Verify that the application boots successfully and Liquibase migrations run without errors.
+
+---
 
 ## Acceptance Criteria
+
 - `pgvector` extension is active in the database.
-- `document` and `document_chunk` tables exist with correct columns and constraints.
-- `document_chunk.embedding` uses the vector type.
-- Vector search index is present.
-- Application starts up without Liquibase errors.
+- `document.created_at` is:
+  - `TIMESTAMPTZ`
+  - `NOT NULL`
+  - `DEFAULT now()`
+- `document_chunk.created_at` is:
+  - `TIMESTAMPTZ`
+  - `NOT NULL`
+  - `DEFAULT now()`
+- Unique constraint exists on `(document_id, chunk_index)`.
+- `document_chunk.embedding` exists and uses type `vector(1536)`.
+- IVFFlat cosine index exists on `document_chunk.embedding`.
+- No application-level `@PrePersist` timestamp initialization remains.
+- Application starts without Liquibase errors.

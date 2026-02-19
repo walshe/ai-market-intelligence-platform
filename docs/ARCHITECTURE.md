@@ -68,6 +68,8 @@ Microservices were intentionally avoided in v1 to reduce orchestration overhead.
 
 Embeddings are stored per chunk to improve retrieval granularity and reduce prompt token overhead.
 
+Note: v1 uses Long identifiers due to single-database modular monolith scope.
+
 ---
 
 ## Retrieval-Augmented Generation (RAG) Flow

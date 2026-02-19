@@ -33,7 +33,7 @@ public class DocumentChunk implements Serializable {
     private String embeddingModel;
 
     @NotNull
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable=false)
     private Instant createdAt;
 
     @ManyToOne(optional = false)
@@ -150,4 +150,7 @@ public class DocumentChunk implements Serializable {
             ", createdAt='" + getCreatedAt() + "'" +
             "}";
     }
+
+    @PrePersist
+    public void prePersist() { if (createdAt == null) createdAt = Instant.now(); }
 }
