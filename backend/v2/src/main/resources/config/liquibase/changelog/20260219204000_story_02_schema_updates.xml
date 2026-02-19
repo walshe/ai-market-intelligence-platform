@@ -23,4 +23,12 @@
                              columnNames="document_id, chunk_index"
                              constraintName="uq_document_chunk_doc_index"/>
     </changeSet>
+
+    <changeSet id="20260219204000-5" author="junie">
+        <sql>ALTER TABLE document_chunk ADD COLUMN IF NOT EXISTS embedding vector(1536);</sql>
+    </changeSet>
+
+    <changeSet id="20260219204000-6" author="junie">
+        <sql>CREATE INDEX IF NOT EXISTS idx_document_chunk_embedding ON document_chunk USING ivfflat (embedding vector_cosine_ops) WITH (lists = 50);</sql>
+    </changeSet>
 </databaseChangeLog>
