@@ -226,3 +226,9 @@ jhipster:
 # ===================================================================
 
 # application:
+application:
+  embedding:
+    openai:
+      api-key: ${OPENAI_API_KEY:placeholder}
+      model-name: text-embedding-3-small
+      base-url: https://api.openai.com

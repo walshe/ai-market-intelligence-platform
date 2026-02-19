@@ -2,6 +2,7 @@ package com.walshe.aimarket;
 
 import com.walshe.aimarket.config.ApplicationProperties;
 import com.walshe.aimarket.config.CRLFLogConverter;
+import com.walshe.aimarket.config.EmbeddingProperties;
 import jakarta.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -24,7 +25,7 @@ import tech.jhipster.config.JHipsterConstants;
 import javax.sql.DataSource;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class })
+@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, EmbeddingProperties.class })
 public class AiMarketIntelligenceApp {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiMarketIntelligenceApp.class);

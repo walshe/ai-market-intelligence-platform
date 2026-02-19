@@ -130,6 +130,9 @@ Desktop.ini
 *.*~
 *~
 .merge_file*
+.env*
+mise.local.toml
+.mise.local.toml
 
 ######################
 # Gradle Wrapper
