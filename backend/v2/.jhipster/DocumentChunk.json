@@ -1,0 +1,41 @@
+{
+  "annotations": {
+    "changelogDate": "20260219150756"
+  },
+  "applications": ["aiMarketIntelligence"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "chunkIndex",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "chunkText",
+      "fieldType": "TextBlob",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "embeddingModel",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "createdAt",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "name": "DocumentChunk",
+  "pagination": "no",
+  "relationships": [
+    {
+      "otherEntityName": "document",
+      "relationshipName": "document",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipValidateRules": "required"
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

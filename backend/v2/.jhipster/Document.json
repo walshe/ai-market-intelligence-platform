@@ -1,0 +1,29 @@
+{
+  "annotations": {
+    "changelogDate": "20260219150755"
+  },
+  "applications": ["aiMarketIntelligence"],
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "title",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "content",
+      "fieldType": "TextBlob",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "createdAt",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "name": "Document",
+  "pagination": "no",
+  "relationships": [],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

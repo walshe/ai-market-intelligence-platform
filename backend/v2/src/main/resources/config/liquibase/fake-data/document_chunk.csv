@@ -1,0 +1,11 @@
+id;chunk_index;chunk_text;embedding_model;created_at;document_id
+1;10688;../fake-data/blob/hipster.txt;keenly yuck cloudy;2026-02-19T01:10:36;1
+2;15426;../fake-data/blob/hipster.txt;until clueless neat;2026-02-18T23:08:51;2
+3;21139;../fake-data/blob/hipster.txt;below rival as;2026-02-19T08:06:33;3
+4;15435;../fake-data/blob/hipster.txt;though;2026-02-19T07:24:49;4
+5;31572;../fake-data/blob/hipster.txt;so failing woot;2026-02-19T11:55:25;5
+6;22220;../fake-data/blob/hipster.txt;by yowza;2026-02-19T02:45:56;6
+7;13495;../fake-data/blob/hipster.txt;galoshes;2026-02-18T16:33:59;7
+8;7082;../fake-data/blob/hipster.txt;but;2026-02-18T20:11:51;8
+9;23051;../fake-data/blob/hipster.txt;wring gadzooks settler;2026-02-19T11:39:26;9
+10;14493;../fake-data/blob/hipster.txt;or unimportant er;2026-02-19T08:28:22;10
