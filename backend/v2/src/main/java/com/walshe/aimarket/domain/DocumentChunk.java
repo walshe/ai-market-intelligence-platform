@@ -25,7 +25,6 @@ public class DocumentChunk implements Serializable {
     @Column(name = "chunk_index", nullable = false)
     private Integer chunkIndex;
 
-    @Lob
     @Column(name = "chunk_text", nullable = false, columnDefinition = "text")
     private String chunkText;
 
@@ -150,7 +149,4 @@ public class DocumentChunk implements Serializable {
             ", createdAt='" + getCreatedAt() + "'" +
             "}";
     }
-
-    @PrePersist
-    public void prePersist() { if (createdAt == null) createdAt = Instant.now(); }
 }

@@ -119,7 +119,4 @@ public class Document implements Serializable {
             ", createdAt='" + getCreatedAt() + "'" +
             "}";
     }
-
-    @PrePersist
-    public void prePersist() { if (createdAt == null) createdAt = Instant.now(); }
 }

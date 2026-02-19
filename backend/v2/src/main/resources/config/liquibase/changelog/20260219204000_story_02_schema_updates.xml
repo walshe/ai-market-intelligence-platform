@@ -8,4 +8,19 @@
         <sql>CREATE EXTENSION IF NOT EXISTS vector;</sql>
     </changeSet>
 
+    <changeSet id="20260219204000-2" author="junie">
+        <addDefaultValue tableName="document" columnName="created_at" defaultValueComputed="now()"/>
+        <addNotNullConstraint tableName="document" columnName="created_at" columnDataType="TIMESTAMPTZ"/>
+    </changeSet>
+
+    <changeSet id="20260219204000-3" author="junie">
+        <addDefaultValue tableName="document_chunk" columnName="created_at" defaultValueComputed="now()"/>
+        <addNotNullConstraint tableName="document_chunk" columnName="created_at" columnDataType="TIMESTAMPTZ"/>
+    </changeSet>
+
+    <changeSet id="20260219204000-4" author="junie">
+        <addUniqueConstraint tableName="document_chunk"
+                             columnNames="document_id, chunk_index"
+                             constraintName="uq_document_chunk_doc_index"/>
+    </changeSet>
 </databaseChangeLog>
