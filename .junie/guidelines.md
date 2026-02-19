@@ -194,19 +194,7 @@ logger.atDebug()
 * **Automated Evolution:** By integrating Flyway with Spring Boot, schema migrations are automatically applied on application startup, simplifying the deployment process.
 * **Traceability:** Keeping migration scripts in version control provides a clear history of schema changes, making it easy to track who changed what and when.
 ## 16. API Documentation with OpenAPI
-* The API documentation is defined using the OpenAPI 3.1.0 specification located in `openapi/openapi/openapi.yaml`.
-* The specification is modularized using file references to keep it maintainable.
-* **Path Naming Convention:** Path operations are defined in the `paths/` directory. The file name should match the API path, substituting slashes with underscores or using a descriptive name if necessary. For paths with parameters, include them in the filename (e.g., `/users/{username}` maps to `paths/users_{username}.yaml`).
-* **Component Definitions:** Common components like schemas and headers are stored in `components/schemas/` and `components/headers/` respectively. Each component should be in its own file (e.g., `User.yaml`).
-* **File References:** Use relative paths for `$ref` (e.g., `$ref: '../components/schemas/User.yaml'`).
-
-**Testing the OpenAPI Specification:**
-* The project uses Redocly for linting and validating the OpenAPI definition.
-* To run the tests, navigate to the `openapi` directory and run:
-  ```bash
-  npm test
-  ```
-* This will execute `redocly lint` to ensure the specification adheres to the configured rules.
+project will use springdoc-openapi-starter-webmvc-ui to expose a swagger ui
 
 
 ---
