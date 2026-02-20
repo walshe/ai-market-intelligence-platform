@@ -90,6 +90,13 @@ jhipster:
 # ===================================================================
 
 # application:
+application:
+  embedding:
+    openai:
+      api-key: test-placeholder
+      model-name: text-embedding-3-small
+      base-url: https://api.openai.com
+
 management:
   health:
     mail:

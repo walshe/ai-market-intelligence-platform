@@ -37,7 +37,7 @@ class OpenAiEmbeddingServiceTest {
     @Test
     void shouldReturnEmbedding() throws JsonProcessingException {
         String text = "hello world";
-        List<Double> expectedEmbedding = List.of(0.1, 0.2, 0.3);
+        float[] expectedEmbedding = new float[] { 0.1f, 0.2f, 0.3f };
 
         OpenAiEmbeddingService.EmbeddingData data = new OpenAiEmbeddingService.EmbeddingData(expectedEmbedding, 0, "embedding");
         OpenAiEmbeddingService.EmbeddingResponse response = new OpenAiEmbeddingService.EmbeddingResponse(List.of(data), null);
@@ -51,9 +51,9 @@ class OpenAiEmbeddingServiceTest {
             .andExpect(jsonPath("$.input").value(text))
             .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
 
-        List<Double> result = embeddingService.embed(text);
+        float[] result = embeddingService.embed(text);
 
-        assertThat(result).isEqualTo(expectedEmbedding);
+        assertThat(result).containsExactly(expectedEmbedding);
         mockServer.verify();
     }
 

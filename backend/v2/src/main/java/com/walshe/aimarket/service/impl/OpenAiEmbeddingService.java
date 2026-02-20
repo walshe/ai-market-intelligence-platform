@@ -25,7 +25,7 @@ class OpenAiEmbeddingService implements EmbeddingService {
     }
 
     @Override
-    public List<Double> embed(String text) {
+    public float[] embed(String text) {
         EmbeddingRequest request = new EmbeddingRequest(properties.modelName(), text);
 
         EmbeddingResponse response = restClient
@@ -52,7 +52,7 @@ class OpenAiEmbeddingService implements EmbeddingService {
 
     record EmbeddingResponse(List<EmbeddingData> data, Usage usage) {}
 
-    record EmbeddingData(List<Double> embedding, int index, String object) {}
+    record EmbeddingData(float[] embedding, int index, String object) {}
 
     record Usage(int prompt_tokens, int total_tokens) {}
 }

@@ -12,7 +12,7 @@ public interface EmbeddingService {
      * @param text the text to embed.
      * @return the embedding vector as a list of doubles.
      */
-    List<Double> embed(String text);
+    float[] embed(String text);
 
     /**
      * Gets the name of the model being used by this service.

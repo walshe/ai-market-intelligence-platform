@@ -38,11 +38,9 @@ class IngestionServiceIT {
         EmbeddingService embeddingService() {
             return new EmbeddingService() {
                 @Override
-                public List<Double> embed(String text) {
-                    double first = Math.min(1_000d, text.length());
-                    List<Double> vec = new ArrayList<>(1536);
-                    vec.add(first);
-                    for (int i = 1; i < 1536; i++) vec.add(0.0);
+                public float[] embed(String text) {
+                    float[] vec = new float[1536];
+                    vec[0] = (float) Math.min(1_000d, text.length());
                     return vec;
                 }
                 @Override

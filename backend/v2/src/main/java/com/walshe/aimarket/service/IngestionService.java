@@ -61,10 +61,10 @@ class IngestionService {
 
         int index = 0;
         for (String chunkText : chunks) {
-            List<Double> embedding = embeddingService.embed(chunkText);
+            float[] embedding = embeddingService.embed(chunkText);
             // Validate embedding length (vector(1536))
-            if (embedding == null || embedding.size() != 1536) {
-                throw new IllegalStateException("Embedding size mismatch: expected 1536 but was " + (embedding == null ? 0 : embedding.size()));
+            if (embedding == null || embedding.length != 1536) {
+                throw new IllegalStateException("Embedding size mismatch: expected 1536 but was " + (embedding == null ? 0 : embedding.length));
             }
 
             DocumentChunk chunk = new DocumentChunk()
@@ -80,13 +80,13 @@ class IngestionService {
         }
     }
 
-    private String toVectorLiteral(List<Double> embedding) {
-        StringBuilder sb = new StringBuilder(10 * embedding.size());
+    private String toVectorLiteral(float[] embedding) {
+        StringBuilder sb = new StringBuilder(10 * embedding.length);
         sb.append('[');
-        for (int i = 0; i < embedding.size(); i++) {
+        for (int i = 0; i < embedding.length; i++) {
             if (i > 0) sb.append(", ");
-            Double d = embedding.get(i);
-            sb.append(d == null ? "0" : Double.toString(d));
+            float f = embedding[i];
+            sb.append(Float.toString(f));
         }
         sb.append(']');
         return sb.toString();
