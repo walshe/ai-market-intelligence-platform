@@ -4,6 +4,11 @@ Implement Phase 1 only.
 Stop after completion.
 
 
+Follow docs/AI_EXECUTION_PROTOCOL.md.
+Story folder: ./stories/03-chunking/
+Implement strictly Phase 3 of tasks.md only.
+Stop after completion.
+
 
 --------------
 
