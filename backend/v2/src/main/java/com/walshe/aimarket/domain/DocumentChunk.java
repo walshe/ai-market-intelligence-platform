@@ -39,6 +39,10 @@ public class DocumentChunk implements Serializable {
     @NotNull
     private Document document;
 
+    @org.hibernate.annotations.ColumnTransformer(write = "?::vector(1536)")
+    @Column(name = "embedding", columnDefinition = "vector(1536)")
+    private String embedding;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -116,6 +120,19 @@ public class DocumentChunk implements Serializable {
 
     public DocumentChunk document(Document document) {
         this.setDocument(document);
+        return this;
+    }
+
+    public String getEmbedding() {
+        return this.embedding;
+    }
+
+    public void setEmbedding(String embedding) {
+        this.embedding = embedding;
+    }
+
+    public DocumentChunk embedding(String embedding) {
+        this.setEmbedding(embedding);
         return this;
     }
 
