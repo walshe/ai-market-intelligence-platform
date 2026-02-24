@@ -72,6 +72,8 @@ public class DocumentResource {
 
     /**
      * {@code PUT  /documents/:id} : Updates an existing document.
+     * Updates modify stored content only and do NOT trigger re-ingestion.
+     * Re-ingestion requires explicit internal invocation (if ever needed).
      *
      * @param id the id of the documentDTO to save.
      * @param documentDTO the documentDTO to update.
@@ -104,7 +106,9 @@ public class DocumentResource {
     }
 
     /**
-     * {@code PATCH  /documents/:id} : Partial updates given fields of an existing document, field will ignore if it is null
+     * {@code PATCH  /documents/:id} : Partial updates given fields of an existing document, field will ignore if it is null.
+     * Updates modify stored content only and do NOT trigger re-ingestion.
+     * Re-ingestion requires explicit internal invocation (if ever needed).
      *
      * @param id the id of the documentDTO to save.
      * @param documentDTO the documentDTO to update.

@@ -1,71 +1,65 @@
 # Tasks - Story 04.5: Integrate IngestionService with DocumentResource
 
-## Phase 1 — Wire Ingestion to Document Creation
+## Phase 1 — Wire Ingestion to Document Creation (Completed)
 
-- [ ] Inject `IngestionService` into `DocumentResource`.
+- [x] Inject `IngestionService` into `DocumentResource`.
 
-- [ ] Update `createDocument()` flow:
+- [x] Update `createDocument()` flow:
   - Persist document via `DocumentService.save(documentDTO)`
   - After successful save, call `ingestionService.ingestDocument(savedId)`
   - Keep controller logic minimal (no chunking logic in controller)
 
-- [ ] Verify manual DB behavior after POST:
+- [x] Verify manual DB behavior after POST:
   - `document` row is created
   - `document_chunk` rows are created
   - `embedding` is non-null for chunks
 
-- [ ] Remove manual `createdAt` assignment from ingestion flow:
+- [x] Remove manual `createdAt` assignment from ingestion flow:
   - Do not set `DocumentChunk.createdAt` in code
   - Rely on DB `DEFAULT now()`
 
-- [ ] Build and run application; confirm no errors.
+- [x] Build and run application; confirm no errors.
 
 ---
 
-## Phase 2 — Enforce Idempotent Ingestion
+## Phase 2 — Enforce Idempotent Ingestion (Completed)
 
-- [ ] Choose and implement one idempotency strategy in `IngestionService`:
+- [x] Implement idempotency strategy in `IngestionService`:
 
-  **Option A (Recommended):**
+  Strategy chosen:
   - Delete existing `document_chunk` rows for a document before re-ingesting
 
-  **OR Option B:**
-  - If chunks already exist, skip ingestion and log
+- [x] Ensure deletion happens before chunk recreation.
 
-- [ ] Implement idempotency in `ingestDocument(Long documentId)` prior to chunk creation.
-
-- [ ] Add logs for ingestion lifecycle:
+- [x] Add logs for ingestion lifecycle:
   - document id
   - chunk count produced
   - embedding model used
-  - skip condition (already ingested / empty content)
+  - skip condition (empty content)
 
-- [ ] Add test verifying idempotency:
-  - Repeated ingestion does not create duplicates (consistent with chosen strategy)
+- [x] Add test verifying idempotency:
+  - Repeated ingestion does not create duplicates
 
-- [ ] Build and run tests.
+- [x] Build and run tests.
 
 ---
 
-## Phase 3 — Add Explicit Ingestion Endpoint
+## Phase 3 — Update Behavior Policy (MVP Simplification) (Completed)
 
-- [ ] Add endpoint to `DocumentResource`:
-  - `POST /api/documents/{id}/ingest`
+Goal: Avoid accidental re-embedding and cost amplification.
 
-- [ ] Endpoint behavior:
-  - Validate document exists (404 if not)
-  - Invoke `ingestionService.ingestDocument(id)`
-  - Return `200 OK` (MVP synchronous)
+- [x] Do NOT trigger ingestion on:
+  - PUT /api/documents/{id}
+  - PATCH /api/documents/{id}
 
-- [ ] Verify endpoint requires JWT authentication (same as other endpoints).
+- [x] Document this behavior clearly in code comments:
+  - Updates modify stored content only.
+  - Re-ingestion requires explicit internal invocation (if ever needed).
 
-- [ ] Add integration test:
-  - Create document
-  - Call ingest endpoint
-  - Assert chunks exist and embeddings stored
-  - Assert idempotency behavior on repeated calls
+- [x] Add test verifying:
+  - Updating a document does NOT create new chunks automatically.
 
-- [ ] Build and run tests.
+- [x] Confirm repeated updates do not affect `document_chunk`.
 
 ---
 
@@ -73,20 +67,19 @@
 
 - [ ] Update `GET /api/documents` to avoid returning full `content` by default:
   - Implement lightweight list DTO: `id`, `title`, `createdAt`
-  - OR remove/disable list endpoint if not needed for MVP
+  - Exclude `content`
 
-- [ ] Verify all document endpoints are authenticated (JWT):
+- [ ] Ensure all document endpoints require JWT authentication:
   - POST /api/documents
   - PUT /api/documents/{id}
   - PATCH /api/documents/{id}
   - GET /api/documents
   - GET /api/documents/{id}
   - DELETE /api/documents/{id}
-  - POST /api/documents/{id}/ingest
 
 - [ ] Ensure delete cleans up chunks:
-  - Either cascade delete or explicit delete of `document_chunk` rows
-  - Add integration test verifying no orphaned chunks after delete
+  - Cascade delete OR explicit delete of `document_chunk`
+  - Add integration test verifying no orphaned chunks
 
 - [ ] Build and run tests.
 
@@ -95,9 +88,10 @@
 ## Phase 5 — Final Verification
 
 - [ ] POST document triggers ingestion and creates chunks with embeddings.
-- [ ] Re-ingestion behaves deterministically and does not duplicate chunks.
+- [ ] Repeated ingestion (internal call) behaves deterministically.
+- [ ] PUT/PATCH do NOT re-trigger ingestion.
 - [ ] GET endpoints never trigger ingestion.
-- [ ] List endpoint does not expose full content (or is removed).
+- [ ] List endpoint does not expose full content.
 - [ ] DELETE removes associated chunks.
 - [ ] Application boots successfully and all tests pass.
 - [ ] No unrelated modules modified.

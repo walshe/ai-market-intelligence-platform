@@ -91,4 +91,37 @@ class IngestionServiceIT {
             assertThat(c.getChunkText()).isNotBlank();
         }
     }
+
+    @Test
+    @Transactional
+    void ingestDocument_isIdempotent_byDeletingExistingChunks() {
+        // Arrange: persist a document with content that will produce multiple chunks
+        String longSentence = "A".repeat(300) + ".";
+        String content = String.join(" ", longSentence, longSentence, longSentence, longSentence);
+        Document doc = new Document()
+            .title("Idempotency Doc")
+            .content(content)
+            .createdAt(Instant.now());
+        doc = documentRepository.saveAndFlush(doc);
+        final Long documentId = doc.getId();
+
+        // Act 1: first ingestion
+        ingestionService.ingestDocument(doc);
+        List<DocumentChunk> first = documentChunkRepository.findAll().stream()
+            .filter(c -> c.getDocument().getId().equals(documentId))
+            .toList();
+        int firstCount = first.size();
+        assertThat(firstCount).isGreaterThan(0);
+
+        // Act 2: second ingestion (should NOT duplicate, we delete before re-ingesting)
+        ingestionService.ingestDocument(doc);
+        List<DocumentChunk> second = documentChunkRepository.findAll().stream()
+            .filter(c -> c.getDocument().getId().equals(documentId))
+            .toList();
+
+        // Assert: same count, indices re-created deterministically starting from 0
+        assertThat(second.size()).isEqualTo(firstCount);
+        assertThat(second.stream().map(DocumentChunk::getChunkIndex).distinct().count()).isEqualTo((long) firstCount);
+        assertThat(second.stream().map(DocumentChunk::getEmbeddingModel).distinct().toList()).containsExactly("text-embedding-3-small");
+    }
 }

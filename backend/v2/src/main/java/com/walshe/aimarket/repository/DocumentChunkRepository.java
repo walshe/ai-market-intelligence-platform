@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DocumentChunkRepository extends JpaRepository<DocumentChunk, Long> {
 
+    void deleteByDocument(com.walshe.aimarket.domain.Document document);
+
     /**
      * Native pgvector cosine similarity search against document_chunk.embedding.
      * Orders by ascending cosine distance (closest first).

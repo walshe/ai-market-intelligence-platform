@@ -52,12 +52,20 @@ public class IngestionService {
         }
         String content = document.getContent();
         if (content == null || content.isBlank()) {
-            log.debug("Document {} has empty content; skipping ingestion", document.getId());
+            log.info("Document {} has empty content; skipping ingestion", document.getId());
             return;
         }
 
+        log.info("Starting ingestion for document {}: {}", document.getId(), document.getTitle());
+
+        // Idempotency: Delete existing chunks before re-ingesting
+        documentChunkRepository.deleteByDocument(document);
+        // Ensure delete is executed before inserts to avoid unique constraint violations
+        documentChunkRepository.flush();
+
         List<String> chunks = chunkingService.chunk(content);
         String model = embeddingService.getModelName();
+        log.info("Document {} split into {} chunks using model {}", document.getId(), chunks.size(), model);
 
         int index = 0;
         for (String chunkText : chunks) {
@@ -78,6 +86,7 @@ public class IngestionService {
             documentChunkRepository.save(chunk);
             index++;
         }
+        log.info("Completed ingestion for document {}. Total chunks: {}", document.getId(), index);
     }
 
     private String toVectorLiteral(float[] embedding) {

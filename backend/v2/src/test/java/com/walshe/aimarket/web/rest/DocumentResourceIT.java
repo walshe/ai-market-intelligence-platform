@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.walshe.aimarket.IntegrationTest;
 import com.walshe.aimarket.domain.Document;
+import com.walshe.aimarket.repository.DocumentChunkRepository;
 import com.walshe.aimarket.repository.DocumentRepository;
 import com.walshe.aimarket.service.EmbeddingService;
 import com.walshe.aimarket.service.dto.DocumentDTO;
@@ -60,6 +61,9 @@ class DocumentResourceIT {
 
     @Autowired
     private DocumentRepository documentRepository;
+
+    @Autowired
+    private DocumentChunkRepository documentChunkRepository;
 
     @Autowired
     private DocumentMapper documentMapper;
@@ -232,6 +236,62 @@ class DocumentResourceIT {
     void getNonExistingDocument() throws Exception {
         // Get the document
         restDocumentMockMvc.perform(get(ENTITY_API_URL_ID, Long.MAX_VALUE)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Transactional
+    void updateDocumentDoesNotTriggerIngestion() throws Exception {
+        // Initialize the database
+        insertedDocument = documentRepository.saveAndFlush(document);
+        long initialChunkCount = documentChunkRepository.count();
+
+        // If it was just created and ingested in another test or if we want to be sure it has chunks
+        // But here we want to verify that PUT doesn't trigger it.
+        // Let's manually trigger ingestion first to have some chunks.
+        Document documentToPost = createEntity();
+        restDocumentMockMvc
+            .perform(
+                post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(documentMapper.toDto(documentToPost)))
+            )
+            .andExpect(status().isCreated());
+
+        long chunksAfterCreation = documentChunkRepository.count();
+        assertThat(chunksAfterCreation).isGreaterThan(initialChunkCount);
+
+        // Get the created document
+        Document createdDocument = documentRepository.findAll().get(documentRepository.findAll().size() - 1);
+        DocumentDTO documentDTO = documentMapper.toDto(createdDocument);
+        documentDTO.setTitle(UPDATED_TITLE);
+
+        // Update the document
+        restDocumentMockMvc
+            .perform(
+                put(ENTITY_API_URL_ID, documentDTO.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(documentDTO))
+            )
+            .andExpect(status().isOk());
+
+        // Verify chunk count hasn't changed
+        long chunksAfterUpdate = documentChunkRepository.count();
+        assertThat(chunksAfterUpdate).isEqualTo(chunksAfterCreation);
+
+        // Partial update
+        DocumentDTO partialUpdateDTO = new DocumentDTO();
+        partialUpdateDTO.setId(documentDTO.getId());
+        partialUpdateDTO.setContent(UPDATED_CONTENT);
+
+        restDocumentMockMvc
+            .perform(
+                patch(ENTITY_API_URL_ID, partialUpdateDTO.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(partialUpdateDTO))
+            )
+            .andExpect(status().isOk());
+
+        // Verify chunk count still hasn't changed
+        long chunksAfterPatch = documentChunkRepository.count();
+        assertThat(chunksAfterPatch).isEqualTo(chunksAfterCreation);
     }
 
     @Test
