@@ -5,8 +5,8 @@ Stop after completion.
 
 
 Follow docs/AI_EXECUTION_PROTOCOL.md.
-Story folder: ./stories/03-chunking/
-Implement strictly Phase 3 of tasks.md only.
+Story folder: ./stories/04-rag/
+Implement strictly Phase 1 of tasks.md only.
 Stop after completion.
 
 
