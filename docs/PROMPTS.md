@@ -6,7 +6,7 @@ Stop after completion.
 
 Follow docs/AI_EXECUTION_PROTOCOL.md.
 Story folder: ./stories/04-rag/
-Implement strictly Phase 1 of tasks.md only.
+Implement strictly Phase "Final Verification" of tasks.md only.
 Stop after completion.
 
 

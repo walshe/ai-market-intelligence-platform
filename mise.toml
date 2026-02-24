@@ -2,3 +2,4 @@
 node = "20"
 
 [env]
+_.file = ".env"
