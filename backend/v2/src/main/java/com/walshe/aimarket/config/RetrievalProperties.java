@@ -1,4 +1,4 @@
-package com.walshe.aimarket.service;
+package com.walshe.aimarket.config;
 
 import jakarta.validation.constraints.Min;
 import org.springframework.boot.context.properties.ConfigurationProperties;

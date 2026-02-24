@@ -1,6 +1,6 @@
 package com.walshe.aimarket.service.impl;
 
-import com.walshe.aimarket.service.RetrievalProperties;
+import com.walshe.aimarket.config.RetrievalProperties;
 import com.walshe.aimarket.domain.DocumentChunk;
 import com.walshe.aimarket.repository.DocumentChunkRepository;
 import com.walshe.aimarket.service.RetrievalService;

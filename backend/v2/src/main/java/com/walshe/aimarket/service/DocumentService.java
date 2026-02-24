@@ -2,7 +2,9 @@ package com.walshe.aimarket.service;
 
 import com.walshe.aimarket.domain.Document;
 import com.walshe.aimarket.repository.DocumentRepository;
+import com.walshe.aimarket.repository.DocumentChunkRepository;
 import com.walshe.aimarket.service.dto.DocumentDTO;
+import com.walshe.aimarket.service.dto.DocumentListDTO;
 import com.walshe.aimarket.service.mapper.DocumentMapper;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,10 +26,13 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
 
+    private final DocumentChunkRepository documentChunkRepository;
+
     private final DocumentMapper documentMapper;
 
-    public DocumentService(DocumentRepository documentRepository, DocumentMapper documentMapper) {
+    public DocumentService(DocumentRepository documentRepository, DocumentChunkRepository documentChunkRepository, DocumentMapper documentMapper) {
         this.documentRepository = documentRepository;
+        this.documentChunkRepository = documentChunkRepository;
         this.documentMapper = documentMapper;
     }
 
@@ -89,6 +94,15 @@ public class DocumentService {
     }
 
     /**
+     * Get lightweight list view of all documents (no content field).
+     */
+    @Transactional(readOnly = true)
+    public List<DocumentListDTO> findAllList() {
+        LOG.debug("Request to get all Documents (list view)");
+        return documentRepository.findAll().stream().map(documentMapper::toListDto).collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    /**
      * Get one document by id.
      *
      * @param id the id of the entity.
@@ -107,6 +121,11 @@ public class DocumentService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete Document : {}", id);
-        documentRepository.deleteById(id);
+        // Ensure document chunks are removed before deleting the document to avoid FK violations and orphans
+        documentRepository.findById(id).ifPresent(document -> {
+            documentChunkRepository.deleteByDocument(document);
+            documentChunkRepository.flush();
+            documentRepository.delete(document);
+        });
     }
 }

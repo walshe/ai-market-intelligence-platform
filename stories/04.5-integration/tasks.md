@@ -65,11 +65,11 @@ Goal: Avoid accidental re-embedding and cost amplification.
 
 ## Phase 4 — Secure and Reduce API Surface
 
-- [ ] Update `GET /api/documents` to avoid returning full `content` by default:
+- [x] Update `GET /api/documents` to avoid returning full `content` by default:
   - Implement lightweight list DTO: `id`, `title`, `createdAt`
   - Exclude `content`
 
-- [ ] Ensure all document endpoints require JWT authentication:
+- [x] Ensure all document endpoints require JWT authentication:
   - POST /api/documents
   - PUT /api/documents/{id}
   - PATCH /api/documents/{id}
@@ -77,21 +77,21 @@ Goal: Avoid accidental re-embedding and cost amplification.
   - GET /api/documents/{id}
   - DELETE /api/documents/{id}
 
-- [ ] Ensure delete cleans up chunks:
+- [x] Ensure delete cleans up chunks:
   - Cascade delete OR explicit delete of `document_chunk`
   - Add integration test verifying no orphaned chunks
 
-- [ ] Build and run tests.
+- [x] Build and run tests.
 
 ---
 
 ## Phase 5 — Final Verification
 
-- [ ] POST document triggers ingestion and creates chunks with embeddings.
-- [ ] Repeated ingestion (internal call) behaves deterministically.
-- [ ] PUT/PATCH do NOT re-trigger ingestion.
-- [ ] GET endpoints never trigger ingestion.
-- [ ] List endpoint does not expose full content.
-- [ ] DELETE removes associated chunks.
+- [x] POST document triggers ingestion and creates chunks with embeddings.
+- [x] Repeated ingestion (internal call) behaves deterministically.
+- [x] PUT/PATCH do NOT re-trigger ingestion.
+- [x] GET endpoints never trigger ingestion.
+- [x] List endpoint does not expose full content.
+- [x] DELETE removes associated chunks.
 - [ ] Application boots successfully and all tests pass.
-- [ ] No unrelated modules modified.
+- [x] No unrelated modules modified.

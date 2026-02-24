@@ -203,15 +203,15 @@ class DocumentResourceIT {
         // Initialize the database
         insertedDocument = documentRepository.saveAndFlush(document);
 
-        // Get all the documentList
+        // Get all the documents - list view should not include content
         restDocumentMockMvc
             .perform(get(ENTITY_API_URL + "?sort=id,desc"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(document.getId().intValue())))
             .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE)))
-            .andExpect(jsonPath("$.[*].content").value(hasItem(DEFAULT_CONTENT)))
-            .andExpect(jsonPath("$.[*].createdAt").value(hasItem(DEFAULT_CREATED_AT.toString())));
+            .andExpect(jsonPath("$.[*].createdAt").value(hasItem(DEFAULT_CREATED_AT.toString())))
+            .andExpect(jsonPath("$.[*].content").doesNotExist());
     }
 
     @Test
@@ -505,18 +505,31 @@ class DocumentResourceIT {
     @Test
     @Transactional
     void deleteDocument() throws Exception {
-        // Initialize the database
-        insertedDocument = documentRepository.saveAndFlush(document);
+        // Create via POST to trigger ingestion and chunks
+        DocumentDTO documentDTO = documentMapper.toDto(document);
+        var result = restDocumentMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(documentDTO)))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        long chunksAfterCreate = documentChunkRepository.count();
+        assertThat(chunksAfterCreate).isGreaterThan(0);
+
+        // Parse created id
+        DocumentDTO created = om.readValue(result.getResponse().getContentAsString(), DocumentDTO.class);
 
         long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the document
         restDocumentMockMvc
-            .perform(delete(ENTITY_API_URL_ID, document.getId()).accept(MediaType.APPLICATION_JSON))
+            .perform(delete(ENTITY_API_URL_ID, created.getId()).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
         assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+        // And chunks are removed
+        long chunksAfterDelete = documentChunkRepository.count();
+        assertThat(chunksAfterDelete).isLessThan(chunksAfterCreate);
     }
 
     protected long getRepositoryCount() {

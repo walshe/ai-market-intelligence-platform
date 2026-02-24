@@ -1,3 +1,5 @@
 consolidate the openai services into one
 
 use spring ai and BeanOutputConverter/JsonPropertyDescriptos=rs
+
+document readme.md that its not meant for file uploads right now and what would be needed to make it work

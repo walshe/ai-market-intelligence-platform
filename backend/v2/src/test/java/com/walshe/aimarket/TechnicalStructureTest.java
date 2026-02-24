@@ -34,6 +34,8 @@ class TechnicalStructureTest {
         .ignoreDependency(alwaysTrue(), belongToAnyOf(
             com.walshe.aimarket.config.Constants.class,
             com.walshe.aimarket.config.ApplicationProperties.class,
-            com.walshe.aimarket.config.EmbeddingProperties.class
+            com.walshe.aimarket.config.EmbeddingProperties.class,
+            com.walshe.aimarket.config.LlmProperties.class,
+            com.walshe.aimarket.config.RetrievalProperties.class
         ));
 }

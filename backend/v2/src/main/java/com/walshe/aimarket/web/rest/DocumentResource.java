@@ -4,6 +4,7 @@ import com.walshe.aimarket.repository.DocumentRepository;
 import com.walshe.aimarket.service.DocumentService;
 import com.walshe.aimarket.service.IngestionService;
 import com.walshe.aimarket.service.dto.DocumentDTO;
+import com.walshe.aimarket.service.dto.DocumentListDTO;
 import com.walshe.aimarket.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -149,9 +150,9 @@ public class DocumentResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of documents in body.
      */
     @GetMapping("")
-    public List<DocumentDTO> getAllDocuments() {
-        LOG.debug("REST request to get all Documents");
-        return documentService.findAll();
+    public List<DocumentListDTO> getAllDocuments() {
+        LOG.debug("REST request to get all Documents (list view)");
+        return documentService.findAllList();
     }
 
     /**
