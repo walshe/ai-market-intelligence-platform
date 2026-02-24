@@ -232,3 +232,8 @@ application:
       api-key: ${OPENAI_API_KEY:placeholder}
       model-name: text-embedding-3-small
       base-url: https://api.openai.com
+  llm:
+    openai:
+      api-key: ${OPENAI_API_KEY:placeholder}
+      model-name: gpt-4o-mini
+      base-url: https://api.openai.com
