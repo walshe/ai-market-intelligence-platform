@@ -117,8 +117,6 @@ class HibernateTimeZoneIT {
         SqlRowSet resultSet = jdbcTemplate.queryForRowSet(request);
         String expectedValue = dateTimeWrapper
             .getLocalTime()
-            .atDate(LocalDate.of(1970, Month.JANUARY, 1))
-            .atZone(ZoneId.systemDefault())
             .format(timeFormatter);
 
         assertThatValueFromSqlRowSetIsEqualToExpectedValue(resultSet, expectedValue);
