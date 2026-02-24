@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +25,11 @@ class RetrievalServiceImpl implements RetrievalService {
     public List<DocumentChunk> retrieveSimilar(float[] queryEmbedding, Integer topK) {
         int effectiveTopK = (topK == null || topK <= 0) ? properties.getDefaultTopK() : topK;
         String vectorLiteral = toVectorLiteral(queryEmbedding);
-        return repository.findSimilarByCosine(vectorLiteral, PageRequest.of(0, effectiveTopK));
+        List<DocumentChunk> results = repository.findSimilarByCosine(vectorLiteral, effectiveTopK);
+        System.out.println("[DEBUG_LOG] RetrievalServiceImpl effectiveTopK: " + effectiveTopK);
+        System.out.println("[DEBUG_LOG] RetrievalServiceImpl query (first 20 chars): " + vectorLiteral.substring(0, Math.min(20, vectorLiteral.length())));
+        System.out.println("[DEBUG_LOG] RetrievalServiceImpl results size: " + results.size());
+        return results;
     }
 
     private String toVectorLiteral(float[] embedding) {

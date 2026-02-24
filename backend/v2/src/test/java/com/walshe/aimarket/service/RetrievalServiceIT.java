@@ -54,8 +54,14 @@ class RetrievalServiceIT {
     @Test
     @Transactional
     void retrieveSimilar_ordersByCosineDistance_andRespectsDefaultTopK() {
+        System.out.println("[DEBUG_LOG] Chunk count in DB: " + chunkRepository.count());
+        chunkRepository.findAll().forEach(c -> System.out.println("[DEBUG_LOG] Chunk index: " + c.getChunkIndex() + ", embedding: " + c.getEmbedding()));
+
         float[] query = unitAlongXArray();
         List<DocumentChunk> results = retrievalService.retrieveSimilar(query, null);
+
+        System.out.println("[DEBUG_LOG] Results size: " + results.size());
+        results.forEach(r -> System.out.println("[DEBUG_LOG] Result index: " + r.getChunkIndex()));
 
         // default-top-k=2 should limit to 2 results
         assertThat(results).hasSize(2);
@@ -97,7 +103,7 @@ class RetrievalServiceIT {
         // normalized (1,1)/sqrt(2) has same direction as (1,1) for cosine
         StringBuilder sb = new StringBuilder();
         sb.append('[');
-        sb.append("1.0, 1.0");
+        sb.append("0.707, 0.707");
         for (int i = 0; i < 1534; i++) sb.append(", 0.0");
         sb.append(']');
         return sb.toString();

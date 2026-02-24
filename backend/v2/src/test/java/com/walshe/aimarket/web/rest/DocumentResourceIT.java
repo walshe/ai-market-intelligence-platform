@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.walshe.aimarket.IntegrationTest;
 import com.walshe.aimarket.domain.Document;
 import com.walshe.aimarket.repository.DocumentRepository;
+import com.walshe.aimarket.service.EmbeddingService;
 import com.walshe.aimarket.service.dto.DocumentDTO;
 import com.walshe.aimarket.service.mapper.DocumentMapper;
 import jakarta.persistence.EntityManager;
@@ -21,8 +22,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -66,6 +70,9 @@ class DocumentResourceIT {
     @Autowired
     private MockMvc restDocumentMockMvc;
 
+    @MockBean
+    private EmbeddingService embeddingService;
+
     private Document document;
 
     private Document insertedDocument;
@@ -93,6 +100,13 @@ class DocumentResourceIT {
     @BeforeEach
     void initTest() {
         document = createEntity();
+
+        float[] mockEmbedding = new float[1536];
+        for (int i = 0; i < 1536; i++) {
+            mockEmbedding[i] = (float) i / 1536.0f;
+        }
+        when(embeddingService.embed(anyString())).thenReturn(mockEmbedding);
+        when(embeddingService.getModelName()).thenReturn("test-model");
     }
 
     @AfterEach

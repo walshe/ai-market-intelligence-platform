@@ -16,7 +16,7 @@ import java.util.List;
  * Orchestrates document ingestion: chunking, embedding generation, and persistence.
  */
 @Service
-class IngestionService {
+public class IngestionService {
 
     private static final Logger log = LoggerFactory.getLogger(IngestionService.class);
 
@@ -38,14 +38,14 @@ class IngestionService {
     }
 
     @Transactional
-    void ingestDocument(Long documentId) {
+    public void ingestDocument(Long documentId) {
         Document document = documentRepository.findById(documentId)
             .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
         ingestDocument(document);
     }
 
     @Transactional
-    void ingestDocument(Document document) {
+    public void ingestDocument(Document document) {
         if (document.getId() == null) {
             // Persist document if not yet persisted (should normally be persisted beforehand)
             document = documentRepository.save(document);
@@ -71,9 +71,9 @@ class IngestionService {
                 .chunkIndex(index)
                 .chunkText(chunkText)
                 .embeddingModel(model)
+                .createdAt(Instant.now())
                 .document(document)
-                .embedding(toVectorLiteral(embedding))
-                .createdAt(Instant.now());
+                .embedding(toVectorLiteral(embedding));
 
             documentChunkRepository.save(chunk);
             index++;

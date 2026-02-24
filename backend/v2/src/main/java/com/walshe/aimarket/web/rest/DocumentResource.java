@@ -2,6 +2,7 @@ package com.walshe.aimarket.web.rest;
 
 import com.walshe.aimarket.repository.DocumentRepository;
 import com.walshe.aimarket.service.DocumentService;
+import com.walshe.aimarket.service.IngestionService;
 import com.walshe.aimarket.service.dto.DocumentDTO;
 import com.walshe.aimarket.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
@@ -37,9 +38,16 @@ public class DocumentResource {
 
     private final DocumentRepository documentRepository;
 
-    public DocumentResource(DocumentService documentService, DocumentRepository documentRepository) {
+    private final IngestionService ingestionService;
+
+    public DocumentResource(
+        DocumentService documentService,
+        DocumentRepository documentRepository,
+        IngestionService ingestionService
+    ) {
         this.documentService = documentService;
         this.documentRepository = documentRepository;
+        this.ingestionService = ingestionService;
     }
 
     /**
@@ -56,6 +64,7 @@ public class DocumentResource {
             throw new BadRequestAlertException("A new document cannot already have an ID", ENTITY_NAME, "idexists");
         }
         documentDTO = documentService.save(documentDTO);
+        ingestionService.ingestDocument(documentDTO.getId());
         return ResponseEntity.created(new URI("/api/documents/" + documentDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, documentDTO.getId().toString()))
             .body(documentDTO);

@@ -1,0 +1,3 @@
+consolidate the openai services into one
+
+use spring ai and BeanOutputConverter/JsonPropertyDescriptos=rs

@@ -18,8 +18,8 @@ public interface DocumentChunkRepository extends JpaRepository<DocumentChunk, Lo
      * Orders by ascending cosine distance (closest first).
      *
      * @param queryVector pgvector text literal (e.g., "[0.1, 0.2, ...]")
-     * @param pageable page request to control LIMIT (use PageRequest.of(0, topK))
+     * @param limit number of results to return
      */
-    @Query(value = "SELECT * FROM document_chunk dc ORDER BY dc.embedding <=> CAST(:query AS vector(1536)) ASC", nativeQuery = true)
-    List<DocumentChunk> findSimilarByCosine(@Param("query") String queryVector, Pageable pageable);
+    @Query(value = "SELECT * FROM document_chunk dc ORDER BY dc.embedding <=> CAST(:query AS vector(1536)) ASC LIMIT CAST(:limit AS int)", nativeQuery = true)
+    List<DocumentChunk> findSimilarByCosine(@Param("query") String queryVector, @Param("limit") int limit);
 }
