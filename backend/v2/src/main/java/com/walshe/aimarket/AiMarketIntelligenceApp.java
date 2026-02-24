@@ -25,7 +25,7 @@ import tech.jhipster.config.JHipsterConstants;
 import javax.sql.DataSource;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, EmbeddingProperties.class })
+@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, EmbeddingProperties.class, com.walshe.aimarket.service.RetrievalProperties.class })
 public class AiMarketIntelligenceApp {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiMarketIntelligenceApp.class);
