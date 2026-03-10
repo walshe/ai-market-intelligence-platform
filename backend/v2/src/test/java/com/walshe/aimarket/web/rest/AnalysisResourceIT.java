@@ -77,6 +77,8 @@ class AnalysisResourceIT {
             return prompt -> new LlmClient.LlmResult(
                 "{\"summary\":\"Growth of 20% detected.\", \"riskFactors\":[\"Economic slowdown\"], \"confidenceScore\":0.95}",
                 "gpt-4o",
+                100,
+                50,
                 150
             );
         }

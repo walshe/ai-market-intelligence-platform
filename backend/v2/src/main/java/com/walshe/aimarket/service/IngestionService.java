@@ -50,13 +50,14 @@ public class IngestionService {
             // Persist document if not yet persisted (should normally be persisted beforehand)
             document = documentRepository.save(document);
         }
+        Long documentId = document.getId();
         String content = document.getContent();
         if (content == null || content.isBlank()) {
-            log.info("Document {} has empty content; skipping ingestion", document.getId());
+            log.info("Document {} has empty content; skipping ingestion", documentId);
             return;
         }
 
-        log.info("Starting ingestion for document {}: {}", document.getId(), document.getTitle());
+        log.info("Starting ingestion for document {}: {}", documentId, document.getTitle());
 
         // Idempotency: Delete existing chunks before re-ingesting
         documentChunkRepository.deleteByDocument(document);
@@ -65,11 +66,11 @@ public class IngestionService {
 
         List<String> chunks = chunkingService.chunk(content);
         String model = embeddingService.getModelName();
-        log.info("Document {} split into {} chunks using model {}", document.getId(), chunks.size(), model);
+        log.info("Document {} split into {} chunks using model {}", documentId, chunks.size(), model);
 
         int index = 0;
         for (String chunkText : chunks) {
-            float[] embedding = embeddingService.embed(chunkText);
+            float[] embedding = embeddingService.embed(chunkText, documentId, null);
             // Validate embedding length (vector(1536))
             if (embedding == null || embedding.length != 1536) {
                 throw new IllegalStateException("Embedding size mismatch: expected 1536 but was " + (embedding == null ? 0 : embedding.length));

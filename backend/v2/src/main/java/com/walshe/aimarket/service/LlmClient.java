@@ -17,7 +17,9 @@ public interface LlmClient {
      * Result of an LLM generation call.
      * @param content generated text content
      * @param modelUsed model identifier actually used
-     * @param tokensUsed total tokens used as reported by provider
+     * @param promptTokens tokens used in the prompt
+     * @param completionTokens tokens used in the generated completion
+     * @param totalTokens total tokens used as reported by provider
      */
-    record LlmResult(String content, String modelUsed, int tokensUsed) {}
+    record LlmResult(String content, String modelUsed, int promptTokens, int completionTokens, int totalTokens) {}
 }

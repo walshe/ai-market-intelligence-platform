@@ -6,7 +6,7 @@ Stop after completion.
 
 Follow docs/AI_EXECUTION_PROTOCOL.md.
 Story folder: ./stories/05.0-cost/
-Implement strictly Phase 1,2 and 3 of tasks.md ONLY.
+Implement strictly Phase 4 and 5 of tasks.md ONLY.
 Stop after completion.
 
 

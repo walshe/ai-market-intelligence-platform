@@ -2,7 +2,7 @@
 
 ## Phase 1 — Create CostLog Data Model
 
-- [ ] Create `CostLog` entity.
+- [x] Create `CostLog` entity.
 
 Fields:
 
@@ -17,16 +17,16 @@ Fields:
 - correlationId (String, nullable)
 - createdAt (Instant)
 
-- [ ] Ensure `createdAt` is **not set in code** and uses DB `DEFAULT now()`.
+- [x] Ensure `createdAt` is **not set in code** and uses DB `DEFAULT now()`.
 
-- [ ] Create corresponding table `cost_log`.
+- [x] Create corresponding table `cost_log`.
 
-- [ ] Add indexes:
+- [x] Add indexes:
   - `model_name`
   - `call_type`
   - `created_at`
 
-- [ ] Create `CostLogRepository` extending:
+- [x] Create `CostLogRepository` extending:
 
 ```
 
@@ -34,13 +34,13 @@ JpaRepository<CostLog, Long>
 
 ````
 
-- [ ] Build application and confirm table creation and successful boot.
+- [x] Build application and confirm table creation and successful boot.
 
 ---
 
 ## Phase 2 — Implement Pricing Configuration
 
-- [ ] Add pricing configuration to `application.yml`.
+- [x] Add pricing configuration to `application.yml`.
 
 Example:
 
@@ -55,7 +55,7 @@ ai:
         outputCostPer1kTokens: 0.00060
 ````
 
-* [ ] Create `AiPricingProperties` configuration class.
+* [x] Create `AiPricingProperties` configuration class.
 
 Responsibilities:
 
@@ -63,13 +63,13 @@ Responsibilities:
 
 * Provide lookup by model name
 
-* [ ] Verify configuration loads correctly during application startup.
+* [x] Verify configuration loads correctly during application startup.
 
 ---
 
 ## Phase 3 — Implement CostTrackingService
 
-* [ ] Create `CostTrackingService`.
+* [x] Create `CostTrackingService`.
 
 Responsibilities:
 
@@ -77,19 +77,19 @@ Responsibilities:
 
 * Persist `CostLog` entries
 
-* [ ] Implement method:
+* [x] Implement method:
 
 ```
 logEmbeddingUsage(modelName, inputTokens, documentId, correlationId)
 ```
 
-* [ ] Implement method:
+* [x] Implement method:
 
 ```
 logCompletionUsage(modelName, inputTokens, outputTokens, correlationId)
 ```
 
-* [ ] Implement cost calculation:
+* [x] Implement cost calculation:
 
 Embedding:
 
@@ -105,12 +105,12 @@ Completion:
 (outputTokens / 1000 * outputCostPer1kTokens)
 ```
 
-* [ ] Ensure failures during cost logging:
+* [x] Ensure failures during cost logging:
 
   * are logged
   * do **not propagate exceptions**
 
-* [ ] Add unit tests for:
+* [x] Add unit tests for:
 
   * cost calculation
   * successful persistence
@@ -119,32 +119,32 @@ Completion:
 
 ## Phase 4 — Integrate with EmbeddingService
 
-* [ ] Inject `CostTrackingService` into `EmbeddingService`.
+* [x] Inject `CostTrackingService` into `EmbeddingService`.
 
-* [ ] After a successful embedding call:
+* [x] After a successful embedding call:
 
   * Extract model name
   * Determine input token count (if available)
 
-* [ ] Call:
+* [x] Call:
 
 ```
 costTrackingService.logEmbeddingUsage(...)
 ```
 
-* [ ] Pass `documentId` during ingestion when available.
+* [x] Pass `documentId` during ingestion when available.
 
-* [ ] Pass `null` documentId during query embedding.
+* [x] Pass `null` documentId during query embedding.
 
-* [ ] Verify ingestion produces **one CostLog entry per chunk embedding**.
+* [x] Verify ingestion produces **one CostLog entry per chunk embedding**.
 
 ---
 
 ## Phase 5 — Integrate with Completion Service
 
-* [ ] Inject `CostTrackingService` into the LLM completion client/service.
+* [x] Inject `CostTrackingService` into the LLM completion client/service.
 
-* [ ] After successful completion response:
+* [x] After successful completion response:
 
   * Extract:
 
@@ -152,13 +152,13 @@ costTrackingService.logEmbeddingUsage(...)
     * input tokens
     * output tokens
 
-* [ ] Call:
+* [x] Call:
 
 ```
 costTrackingService.logCompletionUsage(...)
 ```
 
-* [ ] Verify `/analysis` produces:
+* [x] Verify `/analysis` produces:
 
   * one embedding CostLog entry (query embedding)
   * one completion CostLog entry

@@ -181,6 +181,16 @@ info:
   # Comma separated list of profiles that will trigger the ribbon to show
   display-ribbon-on-profiles: 'dev'
 
+# AI properties
+ai:
+  pricing:
+    models:
+      text-embedding-3-small:
+        embeddingCostPer1kTokens: 0.00002
+      gpt-4o-mini:
+        inputCostPer1kTokens: 0.00015
+        outputCostPer1kTokens: 0.00060
+
 # ===================================================================
 # JHipster specific properties
 #

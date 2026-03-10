@@ -66,7 +66,7 @@ class AnalysisServiceImpl implements AnalysisService {
             parsed.riskFactors,
             parsed.confidenceScore,
             llmResult.modelUsed(),
-            llmResult.tokensUsed()
+            llmResult.totalTokens()
         );
     }
 

@@ -1,6 +1,7 @@
 package com.walshe.aimarket.service.impl;
 
 import com.walshe.aimarket.config.LlmProperties;
+import com.walshe.aimarket.service.CostTrackingService;
 import com.walshe.aimarket.service.LlmClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -10,6 +11,8 @@ import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -21,9 +24,10 @@ class OpenAiLlmClientTest {
     void happyPath_parsesContentAndUsage() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        CostTrackingService costTrackingService = mock(CostTrackingService.class);
 
         LlmProperties props = new LlmProperties("test-key", "gpt-4o-mini", "https://api.openai.com");
-        OpenAiLlmClient client = new OpenAiLlmClient(builder, props);
+        OpenAiLlmClient client = new OpenAiLlmClient(builder, props, costTrackingService);
 
         String responseJson = """
             {"id":"chatcmpl-123","object":"chat.completion","created":1694268190,
@@ -40,8 +44,11 @@ class OpenAiLlmClientTest {
 
         assertThat(result.content()).isEqualTo("Hello world");
         assertThat(result.modelUsed()).isEqualTo("gpt-4o-mini");
-        assertThat(result.tokensUsed()).isEqualTo(19);
+        assertThat(result.promptTokens()).isEqualTo(12);
+        assertThat(result.completionTokens()).isEqualTo(7);
+        assertThat(result.totalTokens()).isEqualTo(19);
 
+        verify(costTrackingService).logCompletionUsage("gpt-4o-mini", 12, 7, null);
         server.verify();
     }
 
@@ -49,9 +56,10 @@ class OpenAiLlmClientTest {
     void emptyResponse_throwsControlledError() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+        CostTrackingService costTrackingService = mock(CostTrackingService.class);
 
         LlmProperties props = new LlmProperties("test-key", "gpt-4o-mini", "https://api.openai.com");
-        OpenAiLlmClient client = new OpenAiLlmClient(builder, props);
+        OpenAiLlmClient client = new OpenAiLlmClient(builder, props, costTrackingService);
 
         String responseJson = "{}";
 

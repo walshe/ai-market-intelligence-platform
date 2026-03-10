@@ -1,6 +1,7 @@
 package com.walshe.aimarket.service.impl;
 
 import com.walshe.aimarket.config.LlmProperties;
+import com.walshe.aimarket.service.CostTrackingService;
 import com.walshe.aimarket.service.LlmClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,11 @@ class OpenAiLlmClient implements LlmClient {
 
     private final RestClient restClient;
     private final LlmProperties properties;
+    private final CostTrackingService costTrackingService;
 
-    OpenAiLlmClient(RestClient.Builder restClientBuilder, LlmProperties properties) {
+    OpenAiLlmClient(RestClient.Builder restClientBuilder, LlmProperties properties, CostTrackingService costTrackingService) {
         this.properties = properties;
+        this.costTrackingService = costTrackingService;
         this.restClient = restClientBuilder
             .baseUrl(properties.baseUrl())
             .defaultHeader("Authorization", "Bearer " + properties.apiKey())
@@ -45,9 +48,24 @@ class OpenAiLlmClient implements LlmClient {
 
         String content = response.choices()[0].message().content();
         String modelUsed = response.model() != null ? response.model() : properties.modelName();
-        int tokensUsed = response.usage() != null ? response.usage().total_tokens() : 0;
+        int promptTokens = 0;
+        int completionTokens = 0;
+        int totalTokens = 0;
 
-        return new LlmResult(content, modelUsed, tokensUsed);
+        if (response.usage() != null) {
+            promptTokens = response.usage().prompt_tokens();
+            completionTokens = response.usage().completion_tokens();
+            totalTokens = response.usage().total_tokens();
+
+            costTrackingService.logCompletionUsage(
+                modelUsed,
+                promptTokens,
+                completionTokens,
+                null // Correlation ID not yet available in Phase 5
+            );
+        }
+
+        return new LlmResult(content, modelUsed, promptTokens, completionTokens, totalTokens);
     }
 
     private record ChatCompletionRequest(String model, Message[] messages) {}

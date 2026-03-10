@@ -1,6 +1,7 @@
 package com.walshe.aimarket.service.impl;
 
 import com.walshe.aimarket.config.EmbeddingProperties;
+import com.walshe.aimarket.service.CostTrackingService;
 import com.walshe.aimarket.service.EmbeddingService;
 import java.util.List;
 import org.springframework.http.MediaType;
@@ -15,9 +16,11 @@ class OpenAiEmbeddingService implements EmbeddingService {
 
     private final RestClient restClient;
     private final EmbeddingProperties properties;
+    private final CostTrackingService costTrackingService;
 
-    OpenAiEmbeddingService(RestClient.Builder restClientBuilder, EmbeddingProperties properties) {
+    OpenAiEmbeddingService(RestClient.Builder restClientBuilder, EmbeddingProperties properties, CostTrackingService costTrackingService) {
         this.properties = properties;
+        this.costTrackingService = costTrackingService;
         this.restClient = restClientBuilder
             .baseUrl(properties.baseUrl())
             .defaultHeader("Authorization", "Bearer " + properties.apiKey())
@@ -26,6 +29,11 @@ class OpenAiEmbeddingService implements EmbeddingService {
 
     @Override
     public float[] embed(String text) {
+        return embed(text, null, null);
+    }
+
+    @Override
+    public float[] embed(String text, Long documentId, String correlationId) {
         EmbeddingRequest request = new EmbeddingRequest(properties.modelName(), text);
 
         EmbeddingResponse response = restClient
@@ -38,6 +46,15 @@ class OpenAiEmbeddingService implements EmbeddingService {
 
         if (response == null || response.data() == null || response.data().isEmpty()) {
             throw new RuntimeException("Empty response from OpenAI embedding API");
+        }
+
+        if (response.usage() != null) {
+            costTrackingService.logEmbeddingUsage(
+                properties.modelName(),
+                response.usage().prompt_tokens(),
+                documentId,
+                correlationId
+            );
         }
 
         return response.data().get(0).embedding();

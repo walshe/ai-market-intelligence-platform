@@ -54,7 +54,7 @@ class AnalysisServiceImplTest {
         String mockPrompt = "System: ... Context: ... Query: " + query;
         String mockJsonResponse = "{\"summary\":\"Good\",\"riskFactors\":[],\"confidenceScore\":0.9}";
 
-        LlmClient.LlmResult mockLlmResult = new LlmClient.LlmResult(mockJsonResponse, "gpt-4", 100);
+        LlmClient.LlmResult mockLlmResult = new LlmClient.LlmResult(mockJsonResponse, "gpt-4", 40, 60, 100);
 
         when(embeddingService.embed(query)).thenReturn(mockEmbedding);
         when(retrievalService.retrieveSimilar(eq(mockEmbedding), eq(5))).thenReturn(mockChunks);
