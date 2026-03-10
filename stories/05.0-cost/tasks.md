@@ -167,21 +167,21 @@ costTrackingService.logCompletionUsage(...)
 
 ## Phase 6 — Implement Metrics Endpoint
 
-* [ ] Create `MetricsResource`.
+- [x] Create `MetricsResource`.
 
-* [ ] Implement endpoint:
+- [x] Implement endpoint:
 
 ```
 GET /api/v1/metrics/cost
 ```
 
-* [ ] Implement repository queries for:
+- [x] Implement repository queries for:
 
   * total USD cost
   * cost grouped by model
   * cost grouped by call type
 
-* [ ] Construct response object containing:
+- [x] Construct response object containing:
 
 ```
 totalUsd
@@ -189,7 +189,7 @@ byModel
 byCallType
 ```
 
-* [ ] Verify endpoint returns expected aggregated values.
+- [x] Verify endpoint returns expected aggregated values.
 
 ---
 
@@ -197,33 +197,33 @@ byCallType
 
 ### Unit Tests
 
-* [ ] Test pricing configuration loading.
-* [ ] Test cost calculation logic.
-* [ ] Test CostTrackingService persistence.
+- [x] Test pricing configuration loading.
+- [x] Test cost calculation logic.
+- [x] Test CostTrackingService persistence.
 
 ### Integration Tests
 
-* [ ] Verify document ingestion generates embedding CostLog entries.
+- [x] Verify document ingestion generates embedding CostLog entries.
 
-* [ ] Verify `/analysis` generates:
+- [x] Verify `/analysis` generates:
 
   * embedding CostLog entry
   * completion CostLog entry.
 
-* [ ] Verify `/metrics/cost` returns aggregated cost data.
+- [x] Verify `/metrics/cost` returns aggregated cost data.
 
 ---
 
 ## Phase 8 — Final Verification
 
-* [ ] Document ingestion logs embedding costs.
-* [ ] Query embedding logs embedding costs.
-* [ ] Completion calls log completion costs.
-* [ ] `/analysis` generates two cost entries.
-* [ ] `/metrics/cost` aggregates costs correctly.
-* [ ] Application builds successfully.
-* [ ] All tests pass.
-* [ ] No unrelated modules modified.
+- [x] Document ingestion logs embedding costs.
+- [x] Query embedding logs embedding costs.
+- [x] Completion calls log completion costs.
+- [x] `/analysis` generates two cost entries.
+- [x] `/metrics/cost` aggregates costs correctly.
+- [x] Application builds successfully.
+- [x] All tests pass.
+- [x] No unrelated modules modified.
 
 ```
 
