@@ -1,0 +1,257 @@
+# Tasks - Story 05: Cost Governance
+
+## Phase 1 — Create CostLog Data Model
+
+- [ ] Create `CostLog` entity.
+
+Fields:
+
+- id (Long, PK)
+- callType (ENUM: EMBEDDING | COMPLETION)
+- modelName (String)
+- inputTokens (Integer)
+- outputTokens (Integer, nullable)
+- totalTokens (Integer)
+- estimatedUsdCost (BigDecimal)
+- documentId (Long, nullable)
+- correlationId (String, nullable)
+- createdAt (Instant)
+
+- [ ] Ensure `createdAt` is **not set in code** and uses DB `DEFAULT now()`.
+
+- [ ] Create corresponding table `cost_log`.
+
+- [ ] Add indexes:
+  - `model_name`
+  - `call_type`
+  - `created_at`
+
+- [ ] Create `CostLogRepository` extending:
+
+```
+
+JpaRepository<CostLog, Long>
+
+````
+
+- [ ] Build application and confirm table creation and successful boot.
+
+---
+
+## Phase 2 — Implement Pricing Configuration
+
+- [ ] Add pricing configuration to `application.yml`.
+
+Example:
+
+```yaml
+ai:
+  pricing:
+    models:
+      text-embedding-3-small:
+        embeddingCostPer1kTokens: 0.00002
+      gpt-4o-mini:
+        inputCostPer1kTokens: 0.00015
+        outputCostPer1kTokens: 0.00060
+````
+
+* [ ] Create `AiPricingProperties` configuration class.
+
+Responsibilities:
+
+* Load pricing configuration
+
+* Provide lookup by model name
+
+* [ ] Verify configuration loads correctly during application startup.
+
+---
+
+## Phase 3 — Implement CostTrackingService
+
+* [ ] Create `CostTrackingService`.
+
+Responsibilities:
+
+* Calculate estimated USD cost
+
+* Persist `CostLog` entries
+
+* [ ] Implement method:
+
+```
+logEmbeddingUsage(modelName, inputTokens, documentId, correlationId)
+```
+
+* [ ] Implement method:
+
+```
+logCompletionUsage(modelName, inputTokens, outputTokens, correlationId)
+```
+
+* [ ] Implement cost calculation:
+
+Embedding:
+
+```
+(tokens / 1000) * embeddingCostPer1kTokens
+```
+
+Completion:
+
+```
+(inputTokens / 1000 * inputCostPer1kTokens)
++
+(outputTokens / 1000 * outputCostPer1kTokens)
+```
+
+* [ ] Ensure failures during cost logging:
+
+  * are logged
+  * do **not propagate exceptions**
+
+* [ ] Add unit tests for:
+
+  * cost calculation
+  * successful persistence
+
+---
+
+## Phase 4 — Integrate with EmbeddingService
+
+* [ ] Inject `CostTrackingService` into `EmbeddingService`.
+
+* [ ] After a successful embedding call:
+
+  * Extract model name
+  * Determine input token count (if available)
+
+* [ ] Call:
+
+```
+costTrackingService.logEmbeddingUsage(...)
+```
+
+* [ ] Pass `documentId` during ingestion when available.
+
+* [ ] Pass `null` documentId during query embedding.
+
+* [ ] Verify ingestion produces **one CostLog entry per chunk embedding**.
+
+---
+
+## Phase 5 — Integrate with Completion Service
+
+* [ ] Inject `CostTrackingService` into the LLM completion client/service.
+
+* [ ] After successful completion response:
+
+  * Extract:
+
+    * model name
+    * input tokens
+    * output tokens
+
+* [ ] Call:
+
+```
+costTrackingService.logCompletionUsage(...)
+```
+
+* [ ] Verify `/analysis` produces:
+
+  * one embedding CostLog entry (query embedding)
+  * one completion CostLog entry
+
+---
+
+## Phase 6 — Implement Metrics Endpoint
+
+* [ ] Create `MetricsResource`.
+
+* [ ] Implement endpoint:
+
+```
+GET /api/v1/metrics/cost
+```
+
+* [ ] Implement repository queries for:
+
+  * total USD cost
+  * cost grouped by model
+  * cost grouped by call type
+
+* [ ] Construct response object containing:
+
+```
+totalUsd
+byModel
+byCallType
+```
+
+* [ ] Verify endpoint returns expected aggregated values.
+
+---
+
+## Phase 7 — Testing
+
+### Unit Tests
+
+* [ ] Test pricing configuration loading.
+* [ ] Test cost calculation logic.
+* [ ] Test CostTrackingService persistence.
+
+### Integration Tests
+
+* [ ] Verify document ingestion generates embedding CostLog entries.
+
+* [ ] Verify `/analysis` generates:
+
+  * embedding CostLog entry
+  * completion CostLog entry.
+
+* [ ] Verify `/metrics/cost` returns aggregated cost data.
+
+---
+
+## Phase 8 — Final Verification
+
+* [ ] Document ingestion logs embedding costs.
+* [ ] Query embedding logs embedding costs.
+* [ ] Completion calls log completion costs.
+* [ ] `/analysis` generates two cost entries.
+* [ ] `/metrics/cost` aggregates costs correctly.
+* [ ] Application builds successfully.
+* [ ] All tests pass.
+* [ ] No unrelated modules modified.
+
+```
+
+---
+
+### One small architectural improvement you may consider later
+
+A **future Story 06** could add:
+
+```
+
+correlationId propagation
+
+```
+
+So a single `/analysis` request groups:
+
+```
+
+query embedding
++
+completion
+
+```
+
+under the same ID.
+
+That makes **cost tracing per request extremely powerful** in production.
+
+If you'd like, the next useful step would be showing **how to integrate this cleanly with Spring AI's token usage metadata**, because many developers implement cost tracking incorrectly there.
+```
