@@ -155,6 +155,11 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # acks: all ensures all replicas acknowledge the message, required for idempotence.
+      acks: all
+      properties:
+        # enable.idempotence: true ensures the broker detects duplicates from a single producer session.
+        enable.idempotence: true
     consumer:
       group-id: ai-market-intelligence
       auto-offset-reset: earliest

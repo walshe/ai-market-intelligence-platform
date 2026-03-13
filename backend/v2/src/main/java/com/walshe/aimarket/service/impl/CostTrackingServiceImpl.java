@@ -31,6 +31,13 @@ public class CostTrackingServiceImpl implements CostTrackingService {
         this.topic = topic;
     }
 
+    /**
+     * Sends an embedding usage event to Kafka asynchronously.
+     * Note: This method is designed to be fire-and-forget to avoid adding latency to the main flow.
+     * Business-level deduplication is handled at the consumer level (idempotent consumer)
+     * to keep this producer extremely thin. Technical deduplication (exactly-once delivery to broker)
+     * is handled via Kafka's idempotent producer configuration.
+     */
     @Override
     public CostLog logEmbeddingUsage(String modelName, Integer inputTokens, Long documentId, String correlationId) {
         log.debug("Logging embedding usage for model: {}, tokens: {}", modelName, inputTokens);
@@ -50,6 +57,11 @@ public class CostTrackingServiceImpl implements CostTrackingService {
         return null;
     }
 
+    /**
+     * Sends a completion usage event to Kafka asynchronously.
+     * Business-level deduplication is avoided here for performance and is instead
+     * implemented in the consumer.
+     */
     @Override
     public CostLog logCompletionUsage(String modelName, Integer inputTokens, Integer outputTokens, String correlationId) {
         log.debug("Logging completion usage for model: {}, input tokens: {}, output tokens: {}", modelName, inputTokens, outputTokens);
