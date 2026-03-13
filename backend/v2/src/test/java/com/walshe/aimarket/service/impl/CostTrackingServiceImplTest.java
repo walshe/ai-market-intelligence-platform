@@ -6,90 +6,66 @@ import static org.mockito.Mockito.*;
 
 import com.walshe.aimarket.config.AiPricingProperties;
 import com.walshe.aimarket.domain.CostLog;
-import com.walshe.aimarket.repository.CostLogRepository;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
+import com.walshe.aimarket.service.dto.CostLogEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class CostTrackingServiceImplTest {
 
     @Mock
-    private CostLogRepository costLogRepository;
-
-    private AiPricingProperties aiPricingProperties;
+    private KafkaTemplate<String, CostLogEvent> kafkaTemplate;
 
     private CostTrackingServiceImpl costTrackingService;
 
     @BeforeEach
     void setUp() {
-        aiPricingProperties = new AiPricingProperties();
-        Map<String, AiPricingProperties.ModelPricing> models = new HashMap<>();
-
-        AiPricingProperties.ModelPricing embeddingModel = new AiPricingProperties.ModelPricing();
-        embeddingModel.setEmbeddingCostPer1kTokens(new BigDecimal("0.00002"));
-        models.put("text-embedding-3-small", embeddingModel);
-
-        AiPricingProperties.ModelPricing completionModel = new AiPricingProperties.ModelPricing();
-        completionModel.setInputCostPer1kTokens(new BigDecimal("0.00015"));
-        completionModel.setOutputCostPer1kTokens(new BigDecimal("0.00060"));
-        models.put("gpt-4o-mini", completionModel);
-
-        aiPricingProperties.setModels(models);
-
-        costTrackingService = new CostTrackingServiceImpl(costLogRepository, aiPricingProperties);
+        costTrackingService = new CostTrackingServiceImpl(kafkaTemplate, "ai-cost-logs");
     }
 
     @Test
-    void shouldCalculateEmbeddingCostCorrectly() {
-        when(costLogRepository.save(any(CostLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void shouldSendEmbeddingUsageToKafka() {
+        String correlationId = "550e8400-e29b-41d4-a716-446655440000";
+        costTrackingService.logEmbeddingUsage("text-embedding-3-small", 1000, 1L, correlationId);
 
-        CostLog result = costTrackingService.logEmbeddingUsage("text-embedding-3-small", 1000, 1L, "corr-1");
+        ArgumentCaptor<CostLogEvent> eventCaptor = ArgumentCaptor.forClass(CostLogEvent.class);
+        verify(kafkaTemplate).send(eq("ai-cost-logs"), eventCaptor.capture());
 
-        assertThat(result).isNotNull();
-        assertThat(result.getCallType()).isEqualTo(CostLog.CallType.EMBEDDING);
-        assertThat(result.getEstimatedUsdCost()).isEqualByComparingTo("0.00002");
-        assertThat(result.getTotalTokens()).isEqualTo(1000);
-        assertThat(result.getDocumentId()).isEqualTo(1L);
-        assertThat(result.getCorrelationId()).isEqualTo("corr-1");
+        CostLogEvent event = eventCaptor.getValue();
+        assertThat(event.callType()).isEqualTo("EMBEDDING");
+        assertThat(event.modelName()).isEqualTo("text-embedding-3-small");
+        assertThat(event.inputTokens()).isEqualTo(1000);
+        assertThat(event.documentId()).isEqualTo(1L);
+        assertThat(event.correlationId().toString()).isEqualTo(correlationId);
     }
 
     @Test
-    void shouldCalculateCompletionCostCorrectly() {
-        when(costLogRepository.save(any(CostLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void shouldSendCompletionUsageToKafka() {
+        String correlationId = "550e8400-e29b-41d4-a716-446655440000";
+        costTrackingService.logCompletionUsage("gpt-4o-mini", 1000, 2000, correlationId);
 
-        CostLog result = costTrackingService.logCompletionUsage("gpt-4o-mini", 1000, 2000, "corr-2");
+        ArgumentCaptor<CostLogEvent> eventCaptor = ArgumentCaptor.forClass(CostLogEvent.class);
+        verify(kafkaTemplate).send(eq("ai-cost-logs"), eventCaptor.capture());
 
-        assertThat(result).isNotNull();
-        assertThat(result.getCallType()).isEqualTo(CostLog.CallType.COMPLETION);
-        // (1000/1000 * 0.00015) + (2000/1000 * 0.00060) = 0.00015 + 0.00120 = 0.00135
-        assertThat(result.getEstimatedUsdCost()).isEqualByComparingTo("0.00135");
-        assertThat(result.getTotalTokens()).isEqualTo(3000);
-        assertThat(result.getCorrelationId()).isEqualTo("corr-2");
+        CostLogEvent event = eventCaptor.getValue();
+        assertThat(event.callType()).isEqualTo("COMPLETION");
+        assertThat(event.modelName()).isEqualTo("gpt-4o-mini");
+        assertThat(event.inputTokens()).isEqualTo(1000);
+        assertThat(event.outputTokens()).isEqualTo(2000);
+        assertThat(event.correlationId().toString()).isEqualTo(correlationId);
     }
 
     @Test
-    void shouldHandleMissingPricingGracefully() {
-        when(costLogRepository.save(any(CostLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    void shouldNotPropagateExceptionOnKafkaFailure() {
+        when(kafkaTemplate.send(anyString(), any(CostLogEvent.class))).thenThrow(new RuntimeException("Kafka error"));
 
-        CostLog result = costTrackingService.logEmbeddingUsage("unknown-model", 1000, null, null);
+        costTrackingService.logEmbeddingUsage("text-embedding-3-small", 1000, null, null);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getEstimatedUsdCost()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void shouldNotPropagateExceptionOnRepositoryFailure() {
-        when(costLogRepository.save(any(CostLog.class))).thenThrow(new RuntimeException("DB error"));
-
-        CostLog result = costTrackingService.logEmbeddingUsage("text-embedding-3-small", 1000, null, null);
-
-        assertThat(result).isNull();
-        verify(costLogRepository).save(any(CostLog.class));
+        verify(kafkaTemplate).send(anyString(), any(CostLogEvent.class));
     }
 }

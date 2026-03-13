@@ -240,3 +240,14 @@ Cost tracking:
         "EMBEDDING": 0.00000418
       }
     }
+
+
+checking kafka topic for cost messages:
+
+general
+    
+    ./kafka-console-consumer --bootstrap-server localhost:9092 --topic ai-cost-logs --from-beginning
+
+app consumer
+
+    ./kafka-console-consumer --bootstrap-server localhost:9092 --topic ai-cost-logs --from-beginning

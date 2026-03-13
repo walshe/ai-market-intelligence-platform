@@ -2,19 +2,19 @@
 
 ## 1. Infrastructure Setup
 
-- [ ] Add Kafka dependencies to `backend/v2/pom.xml`.
+- [x] Add Kafka dependencies to `backend/v2/pom.xml`.
     - `spring-kafka`
     - `spring-kafka-test` (for scope test)
-- [ ] Configure Kafka in `backend/v2/src/main/resources/config/application.yml`.
+- [x] Configure Kafka in `backend/v2/src/main/resources/config/application.yml`.
     - Set `spring.kafka.bootstrap-servers` to `localhost:9092`.
     - Define topic name property: `application.kafka.topics.cost-logs: ai-cost-logs`.
     - Configure Producer JSON serializer.
     - Configure Consumer JSON deserializer (with trusted packages).
-- [ ] Verify Kafka is running using `docker-compose up -d kafka`.
+- [x] Verify Kafka is running using `docker-compose up -d kafka`.
 
 ## 2. Event Definition (Phase 1)
 
-- [ ] Create `CostLogEvent` record in `com.walshe.aimarket.service.dto`.
+- [x] Create `CostLogEvent` record in `com.walshe.aimarket.service.dto`.
     - Fields: `callType` (String), `modelName`, `inputTokens`, `outputTokens`, `documentId`, `correlationId`.
 
 ## 3. Producer Implementation (Phase 2)

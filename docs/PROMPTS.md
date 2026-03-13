@@ -5,8 +5,8 @@ Stop after completion.
 
 
 Follow docs/AI_EXECUTION_PROTOCOL.md.
-Story folder: ./stories/05.1-correlation-tracking/
-Implement strictly Phase 4,5,6 and 7 of tasks.md ONLY.
+Story folder: ./stories/06.1-async-cost-tracking
+Implement strictly Phase 1 of tasks.md ONLY.
 Stop after completion.
 
 

@@ -26,7 +26,10 @@ import tech.jhipster.config.JHipsterConstants;
 
 import javax.sql.DataSource;
 
+import org.springframework.kafka.annotation.EnableKafka;
+
 @SpringBootApplication
+@EnableKafka
 @EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, EmbeddingProperties.class, LlmProperties.class, RetrievalProperties.class })
 public class AiMarketIntelligenceApp {
 
