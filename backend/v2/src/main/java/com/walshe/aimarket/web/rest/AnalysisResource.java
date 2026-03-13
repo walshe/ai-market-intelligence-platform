@@ -4,6 +4,7 @@ import com.walshe.aimarket.service.AnalysisService;
 import com.walshe.aimarket.service.dto.AnalysisRequestDTO;
 import com.walshe.aimarket.service.dto.AnalysisResponseDTO;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -29,8 +30,11 @@ class AnalysisResource {
 
     @PostMapping
     ResponseEntity<AnalysisResponseDTO> analyze(@Valid @RequestBody AnalysisRequestDTO request) {
-        LOG.debug("REST request to analyze query");
-        AnalysisResponseDTO response = analysisService.analyze(request.query(), request.topK());
+        String correlationId = UUID.randomUUID().toString();
+        LOG.info("analysis request started correlationId={}", correlationId);
+        LOG.debug("REST request to analyze query: {}, correlationId: {}", request.query(), correlationId);
+
+        AnalysisResponseDTO response = analysisService.analyze(request.query(), request.topK(), correlationId);
         return ResponseEntity.ok(response);
     }
 }

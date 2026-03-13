@@ -14,6 +14,17 @@ public interface LlmClient {
     LlmResult generate(String prompt);
 
     /**
+     * Generate model output for the given prompt with correlation tracking.
+     *
+     * @param prompt the full prompt content
+     * @param correlationId (optional) the correlation ID for grouping calls
+     * @return result containing generated content, model used, and tokens used
+     */
+    default LlmResult generate(String prompt, String correlationId) {
+        return generate(prompt);
+    }
+
+    /**
      * Result of an LLM generation call.
      * @param content generated text content
      * @param modelUsed model identifier actually used

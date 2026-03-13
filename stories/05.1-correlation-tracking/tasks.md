@@ -2,9 +2,9 @@
 
 ## Phase 1 — Generate Correlation ID for Analysis Requests
 
-- [ ] Update the `/analysis` controller (e.g., `AnalysisResource`).
+- [x] Update the `/analysis` controller (e.g., `AnalysisResource`).
 
-- [ ] At the start of the request lifecycle, generate a correlation ID:
+- [x] At the start of the request lifecycle, generate a correlation ID:
 
 ```
 
@@ -12,9 +12,9 @@ String correlationId = UUID.randomUUID().toString();
 
 ```
 
-- [ ] Pass the generated `correlationId` to the analysis service.
+- [x] Pass the generated `correlationId` to the analysis service.
 
-- [ ] Add a log entry when the request starts:
+- [x] Add a log entry when the request starts:
 
 ```
 
@@ -22,13 +22,13 @@ analysis request started correlationId=<id>
 
 ```
 
-- [ ] Build and run application; confirm no errors.
+- [x] Build and run application; confirm no errors.
 
 ---
 
 ## Phase 2 — Propagate Correlation ID Through Analysis Workflow
 
-- [ ] Update `AnalysisService` to accept `String correlationId`.
+- [x] Update `AnalysisService` to accept `String correlationId`.
 
 Example:
 
@@ -38,12 +38,12 @@ analyzeQuery(String query, String correlationId)
 
 ```
 
-- [ ] Pass `correlationId` when invoking:
+- [x] Pass `correlationId` when invoking:
 
   - query embedding generation (`EmbeddingService`)
   - completion generation (`CompletionService` or equivalent)
 
-- [ ] Update method signatures in affected services to accept `correlationId`.
+- [x] Update method signatures in affected services to accept `correlationId`.
 
 Example:
 
@@ -54,15 +54,15 @@ generateCompletion(..., String correlationId)
 
 ```
 
-- [ ] Ensure correlation ID is propagated through all AI-related service calls.
+- [x] Ensure correlation ID is propagated through all AI-related service calls.
 
-- [ ] Build and run application; confirm workflow still operates normally.
+- [x] Build and run application; confirm workflow still operates normally.
 
 ---
 
 ## Phase 3 — Integrate Correlation ID into Cost Tracking
 
-- [ ] Update `CostTrackingService` methods to accept correlationId.
+- [x] Update `CostTrackingService` methods to accept correlationId.
 
 Example:
 
@@ -74,9 +74,9 @@ logCompletionUsage(modelName, inputTokens, outputTokens, correlationId)
 
 ```
 
-- [ ] Ensure `CostLog.correlationId` is populated when provided.
+- [x] Ensure `CostLog.correlationId` is populated when provided.
 
-- [ ] Ensure ingestion-related embedding calls pass:
+- [x] Ensure ingestion-related embedding calls pass:
 
 ```
 
@@ -84,15 +84,15 @@ correlationId = null
 
 ```
 
-- [ ] Verify that CostLog entries for `/analysis` contain the correlationId.
+- [x] Verify that CostLog entries for `/analysis` contain the correlationId.
 
-- [ ] Verify ingestion CostLog entries contain `null`.
+- [x] Verify ingestion CostLog entries contain `null`.
 
 ---
 
 ## Phase 4 — Add Correlation ID Logging
 
-- [ ] Add structured logging in `AnalysisService`:
+- [x] Add structured logging in `AnalysisService`:
 
 Start:
 
@@ -126,13 +126,13 @@ analysis request completed correlationId=<id>
 
 ```
 
-- [ ] Verify correlation IDs appear consistently in logs.
+- [x] Verify correlation IDs appear consistently in logs.
 
 ---
 
 ## Phase 5 — Optional Metrics Endpoint Enhancement
 
-- [ ] Update `GET /api/v1/metrics/cost` to accept optional query parameter:
+- [x] Update `GET /api/v1/metrics/cost` to accept optional query parameter:
 
 ```
 
@@ -140,11 +140,11 @@ correlationId
 
 ```
 
-- [ ] If correlationId is present:
+- [x] If correlationId is present:
 
   - return cost records associated with that correlationId.
 
-- [ ] Add repository method:
+- [x] Add repository method:
 
 ```
 
@@ -152,7 +152,7 @@ List<CostLog> findByCorrelationId(String correlationId);
 
 ```
 
-- [ ] Verify endpoint behavior:
+- [x] Verify endpoint behavior:
 
 Example:
 
@@ -170,33 +170,33 @@ returns the associated cost entries.
 
 ### Unit Tests
 
-- [ ] Verify correlationId generation logic.
-- [ ] Verify CostTrackingService persists correlationId correctly.
+- [x] Verify correlationId generation logic.
+- [x] Verify CostTrackingService persists correlationId correctly.
 
 ### Integration Tests
 
-- [ ] Execute `/analysis` request.
+- [x] Execute `/analysis` request.
 
 Verify:
 
-- embedding CostLog entry contains correlationId
-- completion CostLog entry contains same correlationId
+- [x] embedding CostLog entry contains correlationId
+- [x] completion CostLog entry contains same correlationId
 
-- [ ] Execute document ingestion.
+- [x] Execute document ingestion.
 
 Verify:
 
-- ingestion CostLog entries have `null` correlationId.
+- [x] ingestion CostLog entries have `null` correlationId.
 
 ---
 
 ## Phase 7 — Final Verification
 
-- [ ] `/analysis` generates a unique correlation ID.
-- [ ] Correlation ID propagates through embedding and completion services.
-- [ ] CostLog entries for analysis share the same correlationId.
-- [ ] Document ingestion CostLog entries do not contain correlationId.
-- [ ] Logs include correlationId for traceability.
-- [ ] Optional metrics endpoint filtering works when enabled.
-- [ ] Application builds successfully and all tests pass.
-- [ ] No unrelated modules modified.
+- [x] `/analysis` generates a unique correlation ID.
+- [x] Correlation ID propagates through embedding and completion services.
+- [x] CostLog entries for analysis share the same correlationId.
+- [x] Document ingestion CostLog entries do not contain correlationId.
+- [x] Logs include correlationId for traceability.
+- [x] Optional metrics endpoint filtering works when enabled.
+- [x] Application builds successfully and all tests pass.
+- [x] No unrelated modules modified.

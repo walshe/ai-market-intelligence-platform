@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 class AnalysisServiceImpl implements AnalysisService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AnalysisServiceImpl.class);
 
     private final EmbeddingService embeddingService;
     private final RetrievalService retrievalService;
@@ -45,8 +49,16 @@ class AnalysisServiceImpl implements AnalysisService {
 
     @Override
     public AnalysisResponseDTO analyze(String query, Integer topK) {
+        return analyze(query, topK, null);
+    }
+
+    @Override
+    public AnalysisResponseDTO analyze(String query, Integer topK, String correlationId) {
+        LOG.info("analysis request started correlationId={}", correlationId);
+
         // 1) Embed query
-        float[] queryEmbedding = embeddingService.embed(query);
+        LOG.debug("query embedding started correlationId={}", correlationId);
+        float[] queryEmbedding = embeddingService.embed(query, null, correlationId);
 
         // 2) Retrieve topK chunks
         List<DocumentChunk> similarChunks = retrievalService.retrieveSimilar(queryEmbedding, topK);
@@ -55,10 +67,13 @@ class AnalysisServiceImpl implements AnalysisService {
         String prompt = promptBuilderService.buildPrompt(query, similarChunks);
 
         // 4) Call LLM
-        LlmClient.LlmResult llmResult = llmClient.generate(prompt);
+        LOG.debug("completion generation started correlationId={}", correlationId);
+        LlmClient.LlmResult llmResult = llmClient.generate(prompt, correlationId);
 
         // 5) Parse JSON response (enforce required fields)
         ParsedModelResponse parsed = parseModelJson(llmResult.content());
+
+        LOG.info("analysis request completed correlationId={}", correlationId);
 
         // 6) Map to response DTO including modelUsed + tokensUsed
         return new AnalysisResponseDTO(

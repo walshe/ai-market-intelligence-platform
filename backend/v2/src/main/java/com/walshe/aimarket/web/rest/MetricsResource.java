@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -33,10 +34,17 @@ class MetricsResource {
     /**
      * GET /cost : get cost metrics.
      *
+     * @param correlationId optional correlationId to filter by.
      * @return the ResponseEntity with status 200 (OK) and the cost metrics in body.
      */
     @GetMapping("/cost")
-    ResponseEntity<CostMetricsDTO> getCostMetrics() {
+    ResponseEntity<?> getCostMetrics(@RequestParam(required = false) String correlationId) {
+        if (correlationId != null) {
+            LOG.debug("REST request to get cost records for correlationId: {}", correlationId);
+            List<CostLog> logs = costLogRepository.findByCorrelationId(correlationId);
+            return ResponseEntity.ok(logs);
+        }
+
         LOG.debug("REST request to get cost metrics");
 
         BigDecimal totalUsd = costLogRepository.getTotalCost();

@@ -159,6 +159,44 @@ class MetricsResourceIT {
 
     @Test
     @Transactional
+    void getCostMetrics_withCorrelationId_shouldReturnRecords() throws Exception {
+        // Given
+        String correlationId = "test-corr-123";
+        CostLog log = new CostLog();
+        log.setCallType(CostLog.CallType.EMBEDDING);
+        log.setModelName("text-embedding-3-small");
+        log.setInputTokens(100);
+        log.setTotalTokens(100);
+        log.setEstimatedUsdCost(new BigDecimal("0.00001"));
+        log.setCorrelationId(correlationId);
+        costLogRepository.saveAndFlush(log);
+
+        CostLog log2 = new CostLog();
+        log2.setCallType(CostLog.CallType.COMPLETION);
+        log2.setModelName("gpt-4o-mini");
+        log2.setInputTokens(100);
+        log2.setOutputTokens(50);
+        log2.setTotalTokens(150);
+        log2.setEstimatedUsdCost(new BigDecimal("0.00005"));
+        log2.setCorrelationId("different-id");
+        costLogRepository.saveAndFlush(log2);
+
+        // When
+        mockMvc
+            .perform(
+                get("/api/v1/metrics/cost")
+                    .param("correlationId", correlationId)
+                    .header("Authorization", "Bearer " + jwtToken)
+            )
+            // Then
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].correlationId").value(correlationId))
+            .andExpect(jsonPath("$[0].modelName").value("text-embedding-3-small"));
+    }
+
+    @Test
+    @Transactional
     void analyze_shouldTriggerCostLogging() throws Exception {
         // Given
         AnalysisRequestDTO request = new AnalysisRequestDTO("Test query", 1);

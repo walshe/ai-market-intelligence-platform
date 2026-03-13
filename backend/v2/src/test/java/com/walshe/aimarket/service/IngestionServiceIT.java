@@ -2,6 +2,7 @@ package com.walshe.aimarket.service;
 
 import com.walshe.aimarket.domain.Document;
 import com.walshe.aimarket.domain.DocumentChunk;
+import com.walshe.aimarket.repository.CostLogRepository;
 import com.walshe.aimarket.repository.DocumentChunkRepository;
 import com.walshe.aimarket.repository.DocumentRepository;
 import org.junit.jupiter.api.Test;
@@ -35,10 +36,15 @@ class IngestionServiceIT {
     static class StubConfig {
         @Bean
         @org.springframework.context.annotation.Primary
-        EmbeddingService embeddingService() {
+        EmbeddingService embeddingService(CostTrackingService costTrackingService) {
             return new EmbeddingService() {
                 @Override
                 public float[] embed(String text) {
+                    return embed(text, null, null);
+                }
+                @Override
+                public float[] embed(String text, Long documentId, String correlationId) {
+                    costTrackingService.logEmbeddingUsage("text-embedding-3-small", 10, documentId, correlationId);
                     float[] vec = new float[1536];
                     vec[0] = (float) Math.min(1_000d, text.length());
                     return vec;
@@ -57,6 +63,9 @@ class IngestionServiceIT {
 
     @Autowired
     private DocumentChunkRepository documentChunkRepository;
+
+    @Autowired
+    private CostLogRepository costLogRepository;
 
     @Test
     @Transactional
@@ -123,5 +132,26 @@ class IngestionServiceIT {
         assertThat(second.size()).isEqualTo(firstCount);
         assertThat(second.stream().map(DocumentChunk::getChunkIndex).distinct().count()).isEqualTo((long) firstCount);
         assertThat(second.stream().map(DocumentChunk::getEmbeddingModel).distinct().toList()).containsExactly("text-embedding-3-small");
+    }
+
+    @Test
+    @Transactional
+    void ingestDocument_shouldNotHaveCorrelationId() {
+        // Arrange
+        Document doc = new Document()
+            .title("No Corr ID Doc")
+            .content("Some content for embedding")
+            .createdAt(Instant.now());
+        doc = documentRepository.saveAndFlush(doc);
+
+        // Act
+        ingestionService.ingestDocument(doc);
+
+        // Assert
+        var costLogs = costLogRepository.findAll();
+        assertThat(costLogs).isNotEmpty();
+        for (var log : costLogs) {
+            assertThat(log.getCorrelationId()).isNull();
+        }
     }
 }

@@ -28,6 +28,11 @@ class OpenAiLlmClient implements LlmClient {
 
     @Override
     public LlmResult generate(String prompt) {
+        return generate(prompt, null);
+    }
+
+    @Override
+    public LlmResult generate(String prompt, String correlationId) {
         ChatCompletionRequest request = new ChatCompletionRequest(
             properties.modelName(),
             new Message[] { new Message("user", prompt) }
@@ -61,7 +66,7 @@ class OpenAiLlmClient implements LlmClient {
                 modelUsed,
                 promptTokens,
                 completionTokens,
-                null // Correlation ID not yet available in Phase 5
+                correlationId
             );
         }
 
