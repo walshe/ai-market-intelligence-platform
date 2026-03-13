@@ -43,9 +43,7 @@ public class CostTrackingServiceImpl implements CostTrackingService {
                 documentId,
                 correlationId != null ? UUID.fromString(correlationId) : null
             );
-            log.debug("[DEBUG_LOG] Sending embedding CostLogEvent: {}", event);
             kafkaTemplate.send(topic, event);
-            log.debug("[DEBUG_LOG] Embedding event sent successfully");
         } catch (Exception e) {
             log.error("Failed to send embedding usage event to Kafka", e);
         }
@@ -64,9 +62,7 @@ public class CostTrackingServiceImpl implements CostTrackingService {
                 null,
                 correlationId != null ? UUID.fromString(correlationId) : null
             );
-            log.debug("[DEBUG_LOG] Sending completion CostLogEvent: {}", event);
             kafkaTemplate.send(topic, event);
-            log.debug("[DEBUG_LOG] Completion event sent successfully");
         } catch (Exception e) {
             log.error("Failed to send completion usage event to Kafka", e);
         }

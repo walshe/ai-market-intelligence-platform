@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface CostLogRepository extends JpaRepository<CostLog, Long> {
+    boolean existsByCorrelationIdAndCallType(String correlationId, CostLog.CallType callType);
+
     List<CostLog> findByCorrelationId(String correlationId);
 
     @Query("SELECT SUM(c.estimatedUsdCost) FROM CostLog c")

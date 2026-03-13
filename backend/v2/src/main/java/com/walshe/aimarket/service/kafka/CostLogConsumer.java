@@ -31,8 +31,17 @@ public class CostLogConsumer {
     @KafkaListener(topics = "${application.kafka.topics.cost-logs:ai-cost-logs}", groupId = "${spring.kafka.consumer.group-id:ai-market-intelligence}")
     @Transactional
     public void consume(CostLogEvent event) {
-        log.debug("[DEBUG_LOG] Consumed CostLogEvent: {}", event);
+        log.debug("Consumed CostLogEvent: {}", event);
         try {
+            if (event.correlationId() != null) {
+                String corrId = event.correlationId().toString();
+                CostLog.CallType callType = CostLog.CallType.valueOf(event.callType());
+                if (costLogRepository.existsByCorrelationIdAndCallType(corrId, callType)) {
+                    log.info("Skipping duplicate CostLogEvent for correlationId: {} and callType: {}", corrId, callType);
+                    return;
+                }
+            }
+
             CostLog costLog = new CostLog();
             costLog.setCallType(CostLog.CallType.valueOf(event.callType()));
             costLog.setModelName(event.modelName());

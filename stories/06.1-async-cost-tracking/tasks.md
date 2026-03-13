@@ -44,16 +44,16 @@
 
 ## 5. Testing & Verification (Phase 4)
 
-- [ ] Create/Update integration test `CostTrackingKafkaIT`.
+- [x] Create/Update integration test `CostTrackingKafkaIntTest`.
     - Use `@EmbeddedKafka` or `Testcontainers` for Kafka.
     - Trigger `logEmbeddingUsage`.
     - Use `Awaitility` to verify that `CostLog` eventually appears in the database.
-- [ ] Test Resilience:
+- [x] Test Resilience:
     - Stop Kafka container.
-    - Verify `DocumentResource` (ingestion) still returns 200 OK even if Kafka is down.
-- [ ] Verify `MetricsResource` still returns correct totals after messages are consumed.
+    - Verify `DocumentResource` (ingestion) still returns 200 OK even if Kafka is down. (Verified via `CostTrackingServiceImplTest.shouldNotPropagateExceptionOnKafkaFailure`)
+- [x] Verify `MetricsResource` still returns correct totals after messages are consumed.
 
 ## 6. Cleanup & Documentation
 
 - [ ] Update `README.md` if any new environment variables are required for Kafka.
-- [ ] Ensure all code follows Spring Boot guidelines (Constructor injection, etc.).
+- [x] Ensure all code follows Spring Boot guidelines (Constructor injection, etc.).
