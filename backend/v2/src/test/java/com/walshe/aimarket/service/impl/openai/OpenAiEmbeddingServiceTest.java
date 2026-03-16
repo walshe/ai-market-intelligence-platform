@@ -2,6 +2,8 @@ package com.walshe.aimarket.service.impl.openai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -60,7 +62,14 @@ class OpenAiEmbeddingServiceTest {
         float[] result = embeddingService.embed(text, 1L, "corr-1");
 
         assertThat(result).containsExactly(expectedEmbedding);
-        verify(costTrackingService).logEmbeddingUsage("text-embedding-3-small", 10, 1L, "corr-1");
+        verify(costTrackingService).logEmbeddingUsage(
+            eq("text-embedding-3-small"),
+            eq(10),
+            eq(1L),
+            eq("corr-1"),
+            eq("openai"),
+            anyLong()
+        );
         mockServer.verify();
     }
 

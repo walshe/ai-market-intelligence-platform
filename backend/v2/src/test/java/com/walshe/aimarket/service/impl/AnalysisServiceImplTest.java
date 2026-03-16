@@ -1,8 +1,10 @@
 package com.walshe.aimarket.service.impl;
 
+import com.walshe.aimarket.ai.embedding.EmbeddingClient;
+import com.walshe.aimarket.ai.llm.CompletionResponse;
+import com.walshe.aimarket.ai.llm.LLMCompletionClient;
 import com.walshe.aimarket.domain.DocumentChunk;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.PromptBuilderService;
 import com.walshe.aimarket.service.RetrievalService;
 import com.walshe.aimarket.service.dto.AnalysisResponseDTO;
@@ -27,6 +29,9 @@ import static org.mockito.Mockito.when;
 class AnalysisServiceImplTest {
 
     @Mock
+    private EmbeddingClient embeddingClient;
+
+    @Mock
     private EmbeddingService embeddingService;
 
     @Mock
@@ -36,7 +41,7 @@ class AnalysisServiceImplTest {
     private PromptBuilderService promptBuilderService;
 
     @Mock
-    private ChatCompletionClient llmClient;
+    private LLMCompletionClient llmClient;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -53,12 +58,19 @@ class AnalysisServiceImplTest {
         String mockPrompt = "System: ... Context: ... Query: " + query;
         String mockJsonResponse = "{\"summary\":\"Good\",\"riskFactors\":[],\"confidenceScore\":0.9}";
 
-        ChatCompletionClient.ChatCompletionResult mockLlmResult = new ChatCompletionClient.ChatCompletionResult(mockJsonResponse, "gpt-4", 40, 60, 100);
+        CompletionResponse mockLlmResult = new CompletionResponse(
+            mockJsonResponse,
+            40,
+            60,
+            "gpt-4",
+            "openai",
+            100L
+        );
 
-        when(embeddingService.embed(eq(query), eq(null), eq(null))).thenReturn(mockEmbedding);
+        when(embeddingClient.generateEmbedding(eq(query))).thenReturn(mockEmbedding);
         when(retrievalService.retrieveSimilar(eq(mockEmbedding), eq(5))).thenReturn(mockChunks);
         when(promptBuilderService.buildPrompt(query, mockChunks)).thenReturn(mockPrompt);
-        when(llmClient.generate(eq(mockPrompt), eq(null))).thenReturn(mockLlmResult);
+        when(llmClient.complete(eq(mockPrompt), eq(null))).thenReturn(mockLlmResult);
 
         // Mock JSON parsing
         JsonNode mockRootNode = mock(JsonNode.class);
@@ -88,9 +100,9 @@ class AnalysisServiceImplTest {
         assertThat(result.modelUsed()).isEqualTo("gpt-4");
         assertThat(result.tokensUsed()).isEqualTo(100);
 
-        verify(embeddingService).embed(eq(query), eq(null), eq(null));
+        verify(embeddingClient).generateEmbedding(eq(query));
         verify(retrievalService).retrieveSimilar(eq(mockEmbedding), eq(5));
         verify(promptBuilderService).buildPrompt(query, mockChunks);
-        verify(llmClient).generate(eq(mockPrompt), eq(null));
+        verify(llmClient).complete(eq(mockPrompt), eq(null));
     }
 }

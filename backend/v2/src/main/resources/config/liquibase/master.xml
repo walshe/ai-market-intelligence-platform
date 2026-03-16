@@ -18,6 +18,7 @@
     <include file="config/liquibase/changelog/20260219150756_added_entity_constraints_DocumentChunk.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260219204000_story_02_schema_updates.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260310132000_added_entity_CostLog.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260316163000_update_cost_log_provider_latency.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>

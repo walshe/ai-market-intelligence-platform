@@ -38,6 +38,26 @@ class PromptBuilderServiceImpl implements PromptBuilderService {
         return sb.toString();
     }
 
+    @Override
+    public String buildStreamingPrompt(String query, List<DocumentChunk> contextChunks) {
+
+        final String contextSection = buildContextSection(contextChunks);
+
+        StringBuilder sb = new StringBuilder(512);
+
+        sb.append("[SYSTEM]\n").append(SYSTEM_INSTRUCTION).append("\n\n");
+
+        sb.append("[CONTEXT]\n").append(contextSection).append("\n\n");
+
+        sb.append("[USER QUERY]\n").append(query).append("\n\n");
+
+        sb.append("[INSTRUCTION]\n")
+            .append("Provide a concise financial analysis answering the query using the context. ")
+            .append("Return plain text only. Do not return JSON.");
+
+        return sb.toString();
+    }
+
     private String buildContextSection(List<DocumentChunk> chunks) {
         if (chunks.isEmpty()) {
             return "(no context)"; // deterministic placeholder for empty context

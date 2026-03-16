@@ -8,12 +8,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.walshe.aimarket.IntegrationTest;
+import com.walshe.aimarket.ai.embedding.EmbeddingClient;
+import com.walshe.aimarket.ai.llm.CompletionResponse;
+import com.walshe.aimarket.ai.llm.LLMCompletionClient;
 import com.walshe.aimarket.domain.CostLog;
 import com.walshe.aimarket.domain.User;
 import com.walshe.aimarket.repository.CostLogRepository;
 import com.walshe.aimarket.repository.UserRepository;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.CostTrackingService;
 import com.walshe.aimarket.service.dto.AnalysisRequestDTO;
 import com.walshe.aimarket.web.rest.vm.LoginVM;
@@ -31,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 /**
  * Integration tests for the {@link MetricsResource} REST controller.
@@ -45,6 +48,12 @@ class MetricsResourceIT {
 
         @Bean
         @Primary
+        EmbeddingClient embeddingClient() {
+            return text -> new float[1536];
+        }
+
+        @Bean
+        @Primary
         EmbeddingService embeddingService(CostTrackingService costTrackingService) {
             return new EmbeddingService() {
                 @Override
@@ -54,7 +63,7 @@ class MetricsResourceIT {
 
                 @Override
                 public float[] embed(String text, Long documentId, String correlationId) {
-                    costTrackingService.logEmbeddingUsage("text-embedding-3-small", 10, documentId, correlationId);
+                    costTrackingService.logEmbeddingUsage("text-embedding-3-small", 10, documentId, correlationId, "openai", 10L);
                     return new float[1536];
                 }
 
@@ -67,16 +76,25 @@ class MetricsResourceIT {
 
         @Bean
         @Primary
-        ChatCompletionClient llmClient(CostTrackingService costTrackingService) {
-            return prompt -> {
-                costTrackingService.logCompletionUsage("gpt-4o-mini", 100, 50, null);
-                return new ChatCompletionClient.ChatCompletionResult(
-                    "{\"summary\":\"Test summary\", \"riskFactors\":[], \"confidenceScore\":1.0}",
-                    "gpt-4o-mini",
-                    100,
-                    50,
-                    150
-                );
+        LLMCompletionClient llmClient(CostTrackingService costTrackingService) {
+            return new LLMCompletionClient() {
+                @Override
+                public CompletionResponse complete(String prompt, String correlationId) {
+                    costTrackingService.logCompletionUsage("gpt-4o-mini", 100, 50, correlationId, "openai", 100L);
+                    return new CompletionResponse(
+                        "{\"summary\":\"Test summary\", \"riskFactors\":[], \"confidenceScore\":1.0}",
+                        100,
+                        50,
+                        "gpt-4o-mini",
+                        "openai",
+                        100L
+                    );
+                }
+
+                @Override
+                public Flux<String> streamCompletion(String prompt, String correlationId) {
+                    return Flux.just("{\"summary\":\"Test summary\", \"riskFactors\":[], \"confidenceScore\":1.0}");
+                }
             };
         }
     }

@@ -28,7 +28,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @org.springframework.test.context.TestPropertySource(properties = {
     "application.embedding.openai.api-key=dummy",
     "application.embedding.openai.model-name=text-embedding-3-small",
-    "application.embedding.openai.base-url=http://localhost"
+    "application.embedding.openai.base-url=http://localhost",
+    "application.llm.provider=openai",
+    "application.llm.openai.api-key=dummy",
+    "application.llm.openai.model-name=gpt-4o-mini",
+    "application.llm.openai.base-url=http://localhost",
+    "application.llm.bedrock.region=us-east-1",
+    "application.llm.bedrock.model-name=anthropic.claude-3-haiku-20240307-v1:0",
+    "spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer",
+    "spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer",
+    "spring.kafka.consumer.properties.spring.json.trusted.packages=com.walshe.aimarket.service.dto"
 })
 class IngestionServiceIT {
 
@@ -44,7 +53,7 @@ class IngestionServiceIT {
                 }
                 @Override
                 public float[] embed(String text, Long documentId, String correlationId) {
-                    costTrackingService.logEmbeddingUsage("text-embedding-3-small", 10, documentId, correlationId);
+                    costTrackingService.logEmbeddingUsage("text-embedding-3-small", 10, documentId, correlationId, "openai", 10L);
                     float[] vec = new float[1536];
                     vec[0] = (float) Math.min(1_000d, text.length());
                     return vec;
@@ -135,7 +144,6 @@ class IngestionServiceIT {
     }
 
     @Test
-    @Transactional
     void ingestDocument_shouldNotHaveCorrelationId() {
         // Arrange
         Document doc = new Document()
@@ -147,11 +155,16 @@ class IngestionServiceIT {
         // Act
         ingestionService.ingestDocument(doc);
 
-        // Assert
-        var costLogs = costLogRepository.findAll();
-        assertThat(costLogs).isNotEmpty();
-        for (var log : costLogs) {
-            assertThat(log.getCorrelationId()).isNull();
-        }
+        // Then
+        org.awaitility.Awaitility.await()
+            .atMost(java.time.Duration.ofSeconds(5))
+            .untilAsserted(() -> {
+                var costLogs = costLogRepository.findAll();
+                assertThat(costLogs).isNotEmpty();
+                for (var log : costLogs) {
+                    assertThat(log.getCorrelationId()).isNull();
+                    assertThat(log.getProvider()).isEqualTo("openai");
+                }
+            });
     }
 }

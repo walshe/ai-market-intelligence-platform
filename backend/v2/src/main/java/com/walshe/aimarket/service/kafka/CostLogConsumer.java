@@ -49,6 +49,8 @@ public class CostLogConsumer {
             costLog.setOutputTokens(event.outputTokens());
             costLog.setDocumentId(event.documentId());
             costLog.setCorrelationId(event.correlationId() != null ? event.correlationId().toString() : null);
+            costLog.setProvider(event.provider());
+            costLog.setLatencyMs(event.latencyMs());
 
             int totalTokens = event.inputTokens() + (event.outputTokens() != null ? event.outputTokens() : 0);
             costLog.setTotalTokens(totalTokens);

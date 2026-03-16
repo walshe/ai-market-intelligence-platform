@@ -16,9 +16,18 @@ public interface PromptBuilderService {
     /**
      * Build a deterministic prompt string from the provided inputs.
      *
-     * @param query the user's query
+     * @param query the user's query s
      * @param contextChunks ordered list of context chunks; order must be preserved in the prompt
      * @return the fully constructed prompt
      */
     String buildPrompt(String query, List<DocumentChunk> contextChunks);
+
+    /**
+     * Build a deterministic prompt string from the provided inputs.
+     *
+     * @param query the user's query
+     * @param contextChunks ordered list of context chunks; order must be preserved in the prompt
+     * @return specific streaming prompt
+     */
+    String buildStreamingPrompt(String query, List<DocumentChunk> contextChunks);
 }

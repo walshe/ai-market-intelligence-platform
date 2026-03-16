@@ -56,6 +56,12 @@ public class CostLog implements Serializable {
     @Column(name = "correlation_id")
     private String correlationId;
 
+    @Column(name = "provider")
+    private String provider;
+
+    @Column(name = "latency_ms")
+    private Long latencyMs;
+
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Instant createdAt;
 
@@ -132,6 +138,22 @@ public class CostLog implements Serializable {
         this.correlationId = correlationId;
     }
 
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public Long getLatencyMs() {
+        return latencyMs;
+    }
+
+    public void setLatencyMs(Long latencyMs) {
+        this.latencyMs = latencyMs;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
@@ -168,6 +190,8 @@ public class CostLog implements Serializable {
             ", estimatedUsdCost=" + getEstimatedUsdCost() +
             ", documentId=" + getDocumentId() +
             ", correlationId='" + getCorrelationId() + "'" +
+            ", provider='" + getProvider() + "'" +
+            ", latencyMs=" + getLatencyMs() +
             ", createdAt='" + getCreatedAt() + "'" +
             "}";
     }

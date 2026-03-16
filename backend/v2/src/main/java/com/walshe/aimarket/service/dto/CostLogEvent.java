@@ -13,6 +13,8 @@ public record CostLogEvent(
     Integer inputTokens,
     Integer outputTokens,
     Long documentId,
-    UUID correlationId
+    UUID correlationId,
+    String provider,
+    Long latencyMs
 ) implements Serializable {
 }

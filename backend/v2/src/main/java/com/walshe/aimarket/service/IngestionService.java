@@ -1,16 +1,16 @@
 package com.walshe.aimarket.service;
 
+import com.walshe.aimarket.ai.embedding.EmbeddingClient;
 import com.walshe.aimarket.domain.Document;
 import com.walshe.aimarket.domain.DocumentChunk;
 import com.walshe.aimarket.repository.DocumentChunkRepository;
 import com.walshe.aimarket.repository.DocumentRepository;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.List;
 
 /**
  * Orchestrates document ingestion: chunking, embedding generation, and persistence.
@@ -23,17 +23,20 @@ public class IngestionService {
     private final DocumentRepository documentRepository;
     private final DocumentChunkRepository documentChunkRepository;
     private final ChunkingService chunkingService;
+    private final EmbeddingClient embeddingClient;
     private final EmbeddingService embeddingService;
 
     IngestionService(
         DocumentRepository documentRepository,
         DocumentChunkRepository documentChunkRepository,
         ChunkingService chunkingService,
+        EmbeddingClient embeddingClient,
         EmbeddingService embeddingService
     ) {
         this.documentRepository = documentRepository;
         this.documentChunkRepository = documentChunkRepository;
         this.chunkingService = chunkingService;
+        this.embeddingClient = embeddingClient;
         this.embeddingService = embeddingService;
     }
 

@@ -7,10 +7,23 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Properties for OpenAI chat completion API.
  */
-@ConfigurationProperties(prefix = "application.llm.openai")
+@ConfigurationProperties(prefix = "application.llm")
 @Validated
 public record LlmProperties(
-    @NotBlank String apiKey,
-    @NotBlank String modelName,
-    @NotBlank String baseUrl
-) {}
+    @NotBlank String provider,
+    OpenAIProperties openai,
+    BedrockProperties bedrock
+) {
+    public record OpenAIProperties(
+        @NotBlank String apiKey,
+        @NotBlank String modelName,
+        @NotBlank String baseUrl
+    ) {}
+
+    public record BedrockProperties(
+        @NotBlank String region,
+        @NotBlank String modelName,
+        String accessKey,
+        String secretKey
+    ) {}
+}

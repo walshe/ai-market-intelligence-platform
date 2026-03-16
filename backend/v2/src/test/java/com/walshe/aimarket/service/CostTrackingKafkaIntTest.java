@@ -20,7 +20,19 @@ import org.springframework.test.context.TestPropertySource;
 @EmbeddedKafka(partitions = 1, topics = { "ai-cost-logs" })
 @TestPropertySource(properties = {
     "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
-    "application.kafka.topics.cost-logs=ai-cost-logs"
+    "application.kafka.topics.cost-logs=ai-cost-logs",
+    "spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer",
+    "spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer",
+    "spring.kafka.consumer.properties.spring.json.trusted.packages=com.walshe.aimarket.service.dto",
+    "application.llm.provider=openai",
+    "application.llm.openai.api-key=dummy",
+    "application.llm.openai.model-name=gpt-4o-mini",
+    "application.llm.openai.base-url=http://localhost",
+    "ai.pricing.models.text-embedding-3-small.embedding-cost-per1k-tokens=0.00002",
+    "ai.pricing.models.gpt-4o-mini.input-cost-per1k-tokens=0.00015",
+    "ai.pricing.models.gpt-4o-mini.output-cost-per1k-tokens=0.0006",
+    "application.llm.bedrock.region=us-east-1",
+    "application.llm.bedrock.model-name=anthropic.claude-3-haiku-20240307-v1:0"
 })
 class CostTrackingKafkaIntTest {
 
@@ -44,7 +56,7 @@ class CostTrackingKafkaIntTest {
 
         // When
         log.info("[DEBUG_LOG] Calling logEmbeddingUsage");
-        costTrackingService.logEmbeddingUsage(modelName, inputTokens, documentId, correlationId);
+        costTrackingService.logEmbeddingUsage(modelName, inputTokens, documentId, correlationId, "openai", 123L);
         log.info("[DEBUG_LOG] Called logEmbeddingUsage");
 
         // Then
@@ -60,6 +72,8 @@ class CostTrackingKafkaIntTest {
                 assertThat(lastLog.getInputTokens()).isEqualTo(inputTokens);
                 assertThat(lastLog.getDocumentId()).isEqualTo(documentId);
                 assertThat(lastLog.getCorrelationId()).isEqualTo(correlationId);
+                assertThat(lastLog.getProvider()).isEqualTo("openai");
+                assertThat(lastLog.getLatencyMs()).isEqualTo(123L);
                 assertThat(lastLog.getEstimatedUsdCost()).isGreaterThan(java.math.BigDecimal.ZERO);
             });
     }
@@ -74,7 +88,7 @@ class CostTrackingKafkaIntTest {
         String correlationId = "660e8400-e29b-41d4-a716-446655440000";
 
         // When
-        costTrackingService.logCompletionUsage(modelName, inputTokens, outputTokens, correlationId);
+        costTrackingService.logCompletionUsage(modelName, inputTokens, outputTokens, correlationId, "bedrock", 456L);
 
         // Then
         await()
@@ -88,6 +102,8 @@ class CostTrackingKafkaIntTest {
                 assertThat(lastLog.getInputTokens()).isEqualTo(inputTokens);
                 assertThat(lastLog.getOutputTokens()).isEqualTo(outputTokens);
                 assertThat(lastLog.getCorrelationId()).isEqualTo(correlationId);
+                assertThat(lastLog.getProvider()).isEqualTo("bedrock");
+                assertThat(lastLog.getLatencyMs()).isEqualTo(456L);
                 assertThat(lastLog.getEstimatedUsdCost()).isGreaterThan(java.math.BigDecimal.ZERO);
             });
     }

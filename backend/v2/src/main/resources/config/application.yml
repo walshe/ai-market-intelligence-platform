@@ -207,6 +207,9 @@ ai:
       gpt-4o-mini:
         inputCostPer1kTokens: 0.00015
         outputCostPer1kTokens: 0.00060
+      anthropic.claude-3-sonnet-20240229-v1:0:
+        inputCostPer1kTokens: 0.003
+        outputCostPer1kTokens: 0.015
 
 # ===================================================================
 # JHipster specific properties
@@ -263,7 +266,13 @@ application:
       model-name: text-embedding-3-small
       base-url: https://api.openai.com
   llm:
+    provider: openai
     openai:
       api-key: ${OPENAI_API_KEY:placeholder}
       model-name: gpt-4o-mini
       base-url: https://api.openai.com
+    bedrock:
+      region: ${AWS_REGION:us-east-1}
+      model-name: anthropic.claude-3-sonnet-20240229-v1:0
+      access-key: ${AWS_ACCESS_KEY_ID:}
+      secret-key: ${AWS_SECRET_ACCESS_KEY:}

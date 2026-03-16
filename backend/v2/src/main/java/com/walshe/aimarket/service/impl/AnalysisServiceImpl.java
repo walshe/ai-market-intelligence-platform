@@ -2,10 +2,12 @@ package com.walshe.aimarket.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.walshe.aimarket.ai.embedding.EmbeddingClient;
+import com.walshe.aimarket.ai.llm.CompletionResponse;
+import com.walshe.aimarket.ai.llm.LLMCompletionClient;
 import com.walshe.aimarket.domain.DocumentChunk;
 import com.walshe.aimarket.service.AnalysisService;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.PromptBuilderService;
 import com.walshe.aimarket.service.RetrievalService;
 import com.walshe.aimarket.service.dto.AnalysisResponseDTO;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 
 /**
  * Implementation of {@link AnalysisService} for RAG flow orchestration.
@@ -27,19 +30,22 @@ class AnalysisServiceImpl implements AnalysisService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AnalysisServiceImpl.class);
 
+    private final EmbeddingClient embeddingClient;
     private final EmbeddingService embeddingService;
     private final RetrievalService retrievalService;
     private final PromptBuilderService promptBuilderService;
-    private final ChatCompletionClient llmClient;
+    private final LLMCompletionClient llmClient;
     private final ObjectMapper objectMapper;
 
     AnalysisServiceImpl(
+        EmbeddingClient embeddingClient,
         EmbeddingService embeddingService,
         RetrievalService retrievalService,
         PromptBuilderService promptBuilderService,
-        ChatCompletionClient llmClient,
+        LLMCompletionClient llmClient,
         ObjectMapper objectMapper
     ) {
+        this.embeddingClient = embeddingClient;
         this.embeddingService = embeddingService;
         this.retrievalService = retrievalService;
         this.promptBuilderService = promptBuilderService;
@@ -58,7 +64,7 @@ class AnalysisServiceImpl implements AnalysisService {
 
         // 1) Embed query
         LOG.debug("query embedding started correlationId={}", correlationId);
-        float[] queryEmbedding = embeddingService.embed(query, null, correlationId);
+        float[] queryEmbedding = embeddingClient.generateEmbedding(query);
 
         // 2) Retrieve topK chunks
         List<DocumentChunk> similarChunks = retrievalService.retrieveSimilar(queryEmbedding, topK);
@@ -68,10 +74,10 @@ class AnalysisServiceImpl implements AnalysisService {
 
         // 4) Call LLM
         LOG.debug("completion generation started correlationId={}", correlationId);
-        ChatCompletionClient.ChatCompletionResult llmResult = llmClient.generate(prompt, correlationId);
+        CompletionResponse llmResult = llmClient.complete(prompt, correlationId);
 
         // 5) Parse JSON response (enforce required fields)
-        ParsedModelResponse parsed = parseModelJson(llmResult.content());
+        ParsedModelResponse parsed = parseModelJson(llmResult.generatedText());
 
         LOG.info("analysis request completed correlationId={}", correlationId);
 
@@ -80,9 +86,28 @@ class AnalysisServiceImpl implements AnalysisService {
             parsed.summary,
             parsed.riskFactors,
             parsed.confidenceScore,
-            llmResult.modelUsed(),
-            llmResult.totalTokens()
+            llmResult.modelName(),
+            llmResult.inputTokens() + llmResult.outputTokens()
         );
+    }
+
+    @Override
+    public Flux<String> streamAnalysis(String query, Integer topK, String correlationId) {
+        LOG.info("stream analysis request started correlationId={}", correlationId);
+
+        // 1) Embed query
+        float[] queryEmbedding = embeddingClient.generateEmbedding(query);
+
+        // 2) Retrieve context
+        List<DocumentChunk> similarChunks = retrievalService.retrieveSimilar(queryEmbedding, topK);
+
+        // 3) Build prompt
+        String prompt = promptBuilderService.buildStreamingPrompt(query, similarChunks);
+
+        // 4) Return stream
+        return llmClient.streamCompletion(prompt, correlationId)
+            .doOnComplete(() -> LOG.info("stream analysis request completed correlationId={}", correlationId))
+            .doOnError(e -> LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage()));
     }
 
     private ParsedModelResponse parseModelJson(String content) {

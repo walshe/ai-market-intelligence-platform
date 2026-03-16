@@ -1,24 +1,23 @@
-package com.walshe.aimarket.service.impl.openai;
+package com.walshe.aimarket.ai.embedding;
 
 import com.walshe.aimarket.config.EmbeddingProperties;
 import com.walshe.aimarket.service.CostTrackingService;
-import com.walshe.aimarket.service.EmbeddingService;
 import java.util.List;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 /**
- * Concrete implementation of {@link EmbeddingService} for OpenAI.
+ * OpenAI implementation of {@link EmbeddingClient}.
  */
-@Service
-public class OpenAiEmbeddingService implements EmbeddingService {
+@Component
+public class OpenAIEmbeddingClient implements EmbeddingClient {
 
     private final RestClient restClient;
     private final EmbeddingProperties properties;
     private final CostTrackingService costTrackingService;
 
-    OpenAiEmbeddingService(RestClient.Builder restClientBuilder, EmbeddingProperties properties, CostTrackingService costTrackingService) {
+    public OpenAIEmbeddingClient(RestClient.Builder restClientBuilder, EmbeddingProperties properties, CostTrackingService costTrackingService) {
         this.properties = properties;
         this.costTrackingService = costTrackingService;
         this.restClient = restClientBuilder
@@ -28,12 +27,7 @@ public class OpenAiEmbeddingService implements EmbeddingService {
     }
 
     @Override
-    public float[] embed(String text) {
-        return embed(text, null, null);
-    }
-
-    @Override
-    public float[] embed(String text, Long documentId, String correlationId) {
+    public float[] generateEmbedding(String text) {
         EmbeddingRequest request = new EmbeddingRequest(properties.modelName(), text);
 
         long start = System.currentTimeMillis();
@@ -54,8 +48,8 @@ public class OpenAiEmbeddingService implements EmbeddingService {
             costTrackingService.logEmbeddingUsage(
                 properties.modelName(),
                 response.usage().prompt_tokens(),
-                documentId,
-                correlationId,
+                null,
+                null,
                 "openai",
                 latency
             );
@@ -64,16 +58,11 @@ public class OpenAiEmbeddingService implements EmbeddingService {
         return response.data().get(0).embedding();
     }
 
-    @Override
-    public String getModelName() {
-        return properties.modelName();
-    }
-
     private record EmbeddingRequest(String model, String input) {}
 
-    record EmbeddingResponse(List<EmbeddingData> data, Usage usage) {}
+    private record EmbeddingResponse(List<EmbeddingData> data, Usage usage) {}
 
-    record EmbeddingData(float[] embedding, int index, String object) {}
+    private record EmbeddingData(float[] embedding, int index, String object) {}
 
-    record Usage(int prompt_tokens, int total_tokens) {}
+    private record Usage(int prompt_tokens, int total_tokens) {}
 }

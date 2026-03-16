@@ -1,12 +1,17 @@
 package com.walshe.aimarket.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.walshe.aimarket.IntegrationTest;
+import com.walshe.aimarket.ai.embedding.EmbeddingClient;
+import com.walshe.aimarket.ai.llm.CompletionResponse;
+import com.walshe.aimarket.ai.llm.LLMCompletionClient;
 import com.walshe.aimarket.domain.Document;
 import com.walshe.aimarket.domain.DocumentChunk;
 import com.walshe.aimarket.domain.User;
@@ -14,10 +19,10 @@ import com.walshe.aimarket.repository.DocumentChunkRepository;
 import com.walshe.aimarket.repository.DocumentRepository;
 import com.walshe.aimarket.repository.UserRepository;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.dto.AnalysisRequestDTO;
 import com.walshe.aimarket.web.rest.vm.LoginVM;
 import java.time.Instant;
+import reactor.core.publisher.Flux;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
     "application.embedding.openai.api-key=dummy",
     "application.embedding.openai.model-name=text-embedding-3-small",
     "application.embedding.openai.base-url=http://localhost",
+    "application.llm.provider=openai",
     "application.llm.openai.api-key=dummy",
     "application.llm.openai.model-name=gpt-4o",
     "application.llm.openai.base-url=http://localhost"
@@ -52,6 +58,18 @@ class AnalysisResourceIT {
 
     @TestConfiguration
     static class StubConfig {
+        @Bean
+        @Primary
+        EmbeddingClient embeddingClient() {
+            return text -> {
+                float[] vec = new float[1536];
+                if ("How was Q4?".equals(text)) {
+                    vec[0] = 1.0f;
+                }
+                return vec;
+            };
+        }
+
         @Bean
         @Primary
         EmbeddingService embeddingService() {
@@ -71,14 +89,25 @@ class AnalysisResourceIT {
 
         @Bean
         @Primary
-        ChatCompletionClient llmClient() {
-            return prompt -> new ChatCompletionClient.ChatCompletionResult(
-                "{\"summary\":\"Growth of 20% detected.\", \"riskFactors\":[\"Economic slowdown\"], \"confidenceScore\":0.95}",
-                "gpt-4o",
-                100,
-                50,
-                150
-            );
+        LLMCompletionClient llmClient() {
+            return new LLMCompletionClient() {
+                @Override
+                public CompletionResponse complete(String prompt, String correlationId) {
+                    return new CompletionResponse(
+                        "{\"summary\":\"Growth of 20% detected.\", \"riskFactors\":[\"Economic slowdown\"], \"confidenceScore\":0.95}",
+                        100,
+                        50,
+                        "gpt-4o",
+                        "openai",
+                        100L
+                    );
+                }
+
+                @Override
+                public Flux<String> streamCompletion(String prompt, String correlationId) {
+                    return Flux.just("{\"summary\":\"Growth of 20% detected.\", \"riskFactors\":[\"Economic slowdown\"], \"confidenceScore\":0.95}");
+                }
+            };
         }
     }
 
@@ -166,6 +195,21 @@ class AnalysisResourceIT {
             .andExpect(jsonPath("$.confidenceScore").value(0.95))
             .andExpect(jsonPath("$.modelUsed").value("gpt-4o"))
             .andExpect(jsonPath("$.tokensUsed").value(150));
+    }
+
+    @Test
+    @Transactional
+    void streamAnalysis_shouldReturnStream() throws Exception {
+        AnalysisRequestDTO request = new AnalysisRequestDTO("How was Q4?", 5);
+        mockMvc
+            .perform(
+                post("/api/v1/analysis/stream")
+                    .header("Authorization", "Bearer " + jwtToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(request))
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
     }
 
     @Test

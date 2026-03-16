@@ -39,8 +39,8 @@ public class CostTrackingServiceImpl implements CostTrackingService {
      * is handled via Kafka's idempotent producer configuration.
      */
     @Override
-    public CostLog logEmbeddingUsage(String modelName, Integer inputTokens, Long documentId, String correlationId) {
-        log.debug("Logging embedding usage for model: {}, tokens: {}", modelName, inputTokens);
+    public CostLog logEmbeddingUsage(String modelName, Integer inputTokens, Long documentId, String correlationId, String provider, Long latencyMs) {
+        log.debug("Logging embedding usage for model: {}, tokens: {}, provider: {}", modelName, inputTokens, provider);
         try {
             CostLogEvent event = new CostLogEvent(
                 "EMBEDDING",
@@ -48,7 +48,9 @@ public class CostTrackingServiceImpl implements CostTrackingService {
                 inputTokens,
                 null,
                 documentId,
-                correlationId != null ? UUID.fromString(correlationId) : null
+                correlationId != null ? UUID.fromString(correlationId) : null,
+                provider,
+                latencyMs
             );
             kafkaTemplate.send(topic, event);
         } catch (Exception e) {
@@ -63,8 +65,8 @@ public class CostTrackingServiceImpl implements CostTrackingService {
      * implemented in the consumer.
      */
     @Override
-    public CostLog logCompletionUsage(String modelName, Integer inputTokens, Integer outputTokens, String correlationId) {
-        log.debug("Logging completion usage for model: {}, input tokens: {}, output tokens: {}", modelName, inputTokens, outputTokens);
+    public CostLog logCompletionUsage(String modelName, Integer inputTokens, Integer outputTokens, String correlationId, String provider, Long latencyMs) {
+        log.debug("Logging completion usage for model: {}, input tokens: {}, output tokens: {}, provider: {}", modelName, inputTokens, outputTokens, provider);
         try {
             CostLogEvent event = new CostLogEvent(
                 "COMPLETION",
@@ -72,7 +74,9 @@ public class CostTrackingServiceImpl implements CostTrackingService {
                 inputTokens,
                 outputTokens,
                 null,
-                correlationId != null ? UUID.fromString(correlationId) : null
+                correlationId != null ? UUID.fromString(correlationId) : null,
+                provider,
+                latencyMs
             );
             kafkaTemplate.send(topic, event);
         } catch (Exception e) {

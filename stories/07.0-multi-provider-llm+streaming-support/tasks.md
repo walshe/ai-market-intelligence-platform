@@ -49,16 +49,16 @@ Decouple the application from a specific completion provider.
 
 ## Tasks
 
-* [ ] Create package:
+* [x] Create package:
 
 ```
 ai.llm
 ```
 
-* [ ] Create interface:
+* [x] Create interface:
 
 ```
-LLMClient
+LLMCompletionClient
 ```
 
 Responsibilities:
@@ -76,7 +76,7 @@ Flux<String> streamCompletion(String prompt, String correlationId)
 
 ---
 
-* [ ] Create DTO:
+* [x] Create DTO:
 
 ```
 CompletionResponse
@@ -97,9 +97,9 @@ Latency will later support provider benchmarking.
 
 ---
 
-* [ ] Ensure DTO is **provider-neutral**.
+* [x] Ensure DTO is **provider-neutral**.
 
-* [ ] Build project and confirm compilation.
+* [x] Build project and confirm compilation.
 
 ---
 
@@ -111,13 +111,13 @@ Prevent future refactoring by separating embedding logic.
 
 ## Tasks
 
-* [ ] Create package:
+* [x] Create package:
 
 ```
 ai.embedding
 ```
 
-* [ ] Create interface:
+* [x] Create interface:
 
 ```
 EmbeddingClient
@@ -131,15 +131,15 @@ List<Float> generateEmbedding(String text)
 
 ---
 
-* [ ] Create implementation:
+* [x] Create implementation:
 
 ```
 OpenAIEmbeddingClient implements EmbeddingClient
 ```
 
-* [ ] Move current embedding generation logic into this class.
+* [x] Move current embedding generation logic into this class.
 
-* [ ] Update services to use `EmbeddingClient`:
+* [x] Update services to use `EmbeddingClient`:
 
 Affected areas:
 
@@ -148,7 +148,7 @@ Affected areas:
 
 ---
 
-* [ ] Verify ingestion still works:
+* [x] Verify ingestion still works:
 
 Expected behavior:
 
@@ -166,15 +166,15 @@ Move OpenAI completion behind the abstraction.
 
 ## Tasks
 
-* [ ] Create class:
+* [x] Create class:
 
 ```
-OpenAIClient implements LLMClient
+OpenAICompletionClient implements LLMCompletionClient
 ```
 
-* [ ] Move existing OpenAI completion code into this class.
+* [x] Move existing OpenAI completion code into this class.
 
-* [ ] Measure request latency.
+* [x] Measure request latency.
 
 Example:
 
@@ -184,7 +184,7 @@ call API
 latency = endTime - startTime
 ```
 
-* [ ] Populate `CompletionResponse`:
+* [x] Populate `CompletionResponse`:
 
 ```
 generatedText
@@ -197,7 +197,7 @@ latencyMs
 
 ---
 
-* [ ] Implement streaming completion.
+* [x] Implement streaming completion.
 
 If Spring AI streaming unavailable:
 
@@ -209,17 +209,17 @@ Flux.just(fullResponse)
 
 ---
 
-* [ ] Update `AnalysisService` to depend on:
+* [x] Update `AnalysisService` to depend on:
 
 ```
-LLMClient
+LLMCompletionClient
 ```
 
 instead of OpenAI-specific classes.
 
 ---
 
-* [ ] Verify `/analysis` endpoint works unchanged.
+* [x] Verify `/analysis` endpoint works unchanged.
 
 ---
 
@@ -231,14 +231,14 @@ Allow switching providers via configuration.
 
 ## Tasks
 
-* [ ] Add configuration properties:
+* [x] Add configuration properties:
 
 ```
 ai.provider=openai
 ai.model=gpt-4o-mini
 ```
 
-* [ ] Create configuration class:
+* [x] Create configuration class:
 
 ```
 LLMProviderConfiguration
@@ -247,17 +247,17 @@ LLMProviderConfiguration
 Responsibilities:
 
 * read provider config
-* register correct `LLMClient` bean
+* register correct `LLMCompletionClient` bean
 
 ---
 
-* [ ] Verify OpenAI loads when:
+* [x] Verify OpenAI loads when:
 
 ```
 ai.provider=openai
 ```
 
-* [ ] Start application and confirm `/analysis` works.
+* [x] Start application and confirm `/analysis` works.
 
 ---
 
@@ -269,7 +269,7 @@ Add Bedrock support.
 
 ## Tasks
 
-* [ ] Add dependency:
+* [x] Add dependency:
 
 ```
 software.amazon.awssdk:bedrockruntime
@@ -277,10 +277,10 @@ software.amazon.awssdk:bedrockruntime
 
 ---
 
-* [ ] Create class:
+* [x] Create class:
 
 ```
-BedrockClient implements LLMClient
+BedrockClient implements LLMCompletionClient
 ```
 
 Responsibilities:
@@ -291,7 +291,7 @@ Responsibilities:
 
 ---
 
-* [ ] Support at least one model:
+* [x] Support at least one model:
 
 Recommended:
 
@@ -301,7 +301,7 @@ anthropic.claude-3-sonnet
 
 ---
 
-* [ ] Populate `CompletionResponse`:
+* [x] Populate `CompletionResponse`:
 
 ```
 generatedText
@@ -314,11 +314,11 @@ latencyMs
 
 ---
 
-* [ ] Integrate with `CostTrackingService`.
+* [x] Integrate with `CostTrackingService`.
 
 ---
 
-* [ ] Add configuration support:
+* [x] Add configuration support:
 
 ```
 ai.provider=bedrock
@@ -327,7 +327,7 @@ ai.model=anthropic.claude-3-sonnet
 
 ---
 
-* [ ] Verify provider switching works.
+* [x] Verify provider switching works.
 
 Run:
 
@@ -347,11 +347,11 @@ Allow incremental responses.
 
 ## Tasks
 
-* [ ] Confirm `LLMClient` streaming method exists.
+* [x] Confirm `LLMCompletionClient` streaming method exists.
 
-* [ ] Implement OpenAI streaming support.
+* [x] Implement OpenAI streaming support.
 
-* [ ] Implement Bedrock streaming if supported.
+* [x] Implement Bedrock streaming if supported.
 
 If not supported:
 
@@ -363,7 +363,7 @@ fallback.
 
 ---
 
-* [ ] Ensure correlation ID propagates through streaming calls.
+* [x] Ensure correlation ID propagates through streaming calls.
 
 ---
 
@@ -375,7 +375,7 @@ Expose streaming RAG responses.
 
 ## Tasks
 
-* [ ] Add endpoint in `AnalysisResource`:
+* [x] Add endpoint in `AnalysisResource`:
 
 ```
 GET /api/analysis/stream
@@ -383,7 +383,7 @@ GET /api/analysis/stream
 
 ---
 
-* [ ] Configure response type:
+* [x] Configure response type:
 
 ```
 text/event-stream
@@ -391,7 +391,7 @@ text/event-stream
 
 ---
 
-* [ ] Implement Server-Sent Events.
+* [x] Implement Server-Sent Events.
 
 Options:
 
@@ -407,7 +407,7 @@ SseEmitter
 
 ---
 
-* [ ] Reuse RAG pipeline:
+* [x] Reuse RAG pipeline:
 
 1. generate query embedding
 2. vector similarity search
@@ -416,7 +416,7 @@ SseEmitter
 
 ---
 
-* [ ] Emit tokens as SSE events:
+* [x] Emit tokens as SSE events:
 
 ```
 data: token
@@ -426,7 +426,7 @@ data: token
 
 ---
 
-* [ ] Verify streaming:
+* [x] Verify streaming:
 
 ```
 curl -N http://localhost:8080/api/analysis/stream
