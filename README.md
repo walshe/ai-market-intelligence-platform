@@ -50,6 +50,46 @@ A modular Spring Boot backend demonstrating production-style integration of Larg
 
 For more details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+
+
+```mermaid
+flowchart TD
+
+subgraph Ingestion Pipeline
+A[Document Upload] --> B[IngestionService]
+B --> C[Chunking]
+C --> D[EmbeddingClient]
+D --> E[Embedding Model]
+E --> F[(pgvector)]
+end
+
+subgraph Analysis Request
+G[/analysis request/] --> H[Generate Query Embedding]
+H --> I[Vector Similarity Search]
+I --> F
+I --> J[Retrieve Relevant Chunks]
+J --> K[Prompt Construction]
+K --> L[LLMClient]
+L --> M[OpenAI Provider]
+L --> N[Bedrock Provider]
+M --> O[Completion Response]
+N --> O
+end
+
+subgraph Observability
+P[Correlation ID]
+Q[CostTrackingService]
+R[(CostLog Table)]
+end
+
+G --> P
+L --> Q
+Q --> R
+P --> Q
+```
+
+
+
 ---
 
 ## 🛠️ Tech Stack
