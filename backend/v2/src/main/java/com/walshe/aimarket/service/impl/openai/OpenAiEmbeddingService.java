@@ -1,4 +1,4 @@
-package com.walshe.aimarket.service.impl;
+package com.walshe.aimarket.service.impl.openai;
 
 import com.walshe.aimarket.config.EmbeddingProperties;
 import com.walshe.aimarket.service.CostTrackingService;
@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClient;
  * Concrete implementation of {@link EmbeddingService} for OpenAI.
  */
 @Service
-class OpenAiEmbeddingService implements EmbeddingService {
+public class OpenAiEmbeddingService implements EmbeddingService {
 
     private final RestClient restClient;
     private final EmbeddingProperties properties;

@@ -3,7 +3,7 @@ package com.walshe.aimarket.service;
 /**
  * Client interface for Large Language Model generation.
  */
-public interface LlmClient {
+public interface ChatCompletionClient {
 
     /**
      * Generate model output for the given prompt.
@@ -11,7 +11,7 @@ public interface LlmClient {
      * @param prompt the full prompt content
      * @return result containing generated content, model used, and tokens used
      */
-    LlmResult generate(String prompt);
+    ChatCompletionResult generate(String prompt);
 
     /**
      * Generate model output for the given prompt with correlation tracking.
@@ -20,7 +20,7 @@ public interface LlmClient {
      * @param correlationId (optional) the correlation ID for grouping calls
      * @return result containing generated content, model used, and tokens used
      */
-    default LlmResult generate(String prompt, String correlationId) {
+    default ChatCompletionResult generate(String prompt, String correlationId) {
         return generate(prompt);
     }
 
@@ -32,5 +32,5 @@ public interface LlmClient {
      * @param completionTokens tokens used in the generated completion
      * @param totalTokens total tokens used as reported by provider
      */
-    record LlmResult(String content, String modelUsed, int promptTokens, int completionTokens, int totalTokens) {}
+    record ChatCompletionResult(String content, String modelUsed, int promptTokens, int completionTokens, int totalTokens) {}
 }

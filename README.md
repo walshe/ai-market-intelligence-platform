@@ -188,7 +188,7 @@ Ingest document:
     curl -X 'POST' \
       'http://localhost:8080/api/documents' \
       -H 'accept: */*' \
-      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjAwNjg2NCwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNDE0ODY0LCJ1c2VySWQiOjF9.Hz217Gz_9VLpK82Gnu5IxTT3eX7V_JjEVQY_wJdeOR4VQaEvT86tjFUxZbg-TkbZex6yCjFHF0OngAQ5iv1EpQ' \
+      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjI2MjcyNSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNjcwNzI1LCJ1c2VySWQiOjF9.k_2ova-4X3nfEbiku7kdkR1GmCFilL3RzhsZwYtJ7bo5Pi8m7WzpQAjOijlh4MUl9CDBsA5A4FJ47rPaqG0i9Q' \
       -H 'Content-Type: application/json' \
       -d "{\"title\": \"Wall Street's Newest Bitcoin Treasury Bull: B. Riley Launches Upside Coverage on Strategy and Strive\", \"content\": \"B. Riley has initiated Buy ratings on two Nasdaq-listed bitcoin accumulation companies: MicroStrategy (MSTR) with a \$175 price target (current \$138.95) and Strive (ASST) with a \$12 target (current \$8.51). With bitcoin trading near \$70,000, B. Riley sees compressed valuations as a buying opportunity rather than structural deterioration. MicroStrategy holds 738,731 bitcoins, making it the largest corporate bitcoin holder by a wide margin, and trades at 1.2x net asset value versus a 3.4x peak reached in 2024. The firm highlights MSTR's diversified digital credit platform spanning six securities and capital structure flexibility including perpetual preferred stock and convertible notes. For Strive, analyst Fedor Shabalin points to a dual-engine model combining a bitcoin treasury with an operating asset management business, minimal near-term convertible debt maturities offering payment certainty, and a current share price reflecting a valuation discount relative to underlying business strength.\", \"createdAt\": \"2026-03-10T14:02:00.000Z\"}"
   
@@ -198,10 +198,10 @@ Analysis query:
     curl -X 'POST' \
       'http://localhost:8080/api/v1/analysis' \
       -H 'accept: */*' \
-      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjAwNjczMSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNDE0NzMxLCJ1c2VySWQiOjF9.H_f7v7CerEmuzILn5oLGGZxEqTfgb9izXW22Yt1opEnE911Nl3dtFG267xDwdojp7Cn8pHBIHmCqJl68-AkeSA' \
+      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjI2MjcyNSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNjcwNzI1LCJ1c2VySWQiOjF9.k_2ova-4X3nfEbiku7kdkR1GmCFilL3RzhsZwYtJ7bo5Pi8m7WzpQAjOijlh4MUl9CDBsA5A4FJ47rPaqG0i9Q' \
       -H 'Content-Type: application/json' \
       -d '{
-      "query": "Whats the new on Strategy today re Bitcoin?",
+      "query": "Whats the news on Strategy today re Bitcoin?",
       "topK": 2
     }'
 
@@ -227,7 +227,7 @@ Cost tracking:
     curl -X 'GET' \
       'http://localhost:8080/api/v1/metrics/cost' \
       -H 'accept: */*' \
-      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjAwNjczMSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNDE0NzMxLCJ1c2VySWQiOjF9.H_f7v7CerEmuzILn5oLGGZxEqTfgb9izXW22Yt1opEnE911Nl3dtFG267xDwdojp7Cn8pHBIHmCqJl68-AkeSA'
+      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjI2MjcyNSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNjcwNzI1LCJ1c2VySWQiOjF9.k_2ova-4X3nfEbiku7kdkR1GmCFilL3RzhsZwYtJ7bo5Pi8m7WzpQAjOijlh4MUl9CDBsA5A4FJ47rPaqG0i9Q'
 
 
 

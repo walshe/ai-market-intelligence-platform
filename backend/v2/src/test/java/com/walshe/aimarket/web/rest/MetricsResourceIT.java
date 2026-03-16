@@ -13,7 +13,7 @@ import com.walshe.aimarket.domain.User;
 import com.walshe.aimarket.repository.CostLogRepository;
 import com.walshe.aimarket.repository.UserRepository;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.LlmClient;
+import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.CostTrackingService;
 import com.walshe.aimarket.service.dto.AnalysisRequestDTO;
 import com.walshe.aimarket.web.rest.vm.LoginVM;
@@ -67,10 +67,10 @@ class MetricsResourceIT {
 
         @Bean
         @Primary
-        LlmClient llmClient(CostTrackingService costTrackingService) {
+        ChatCompletionClient llmClient(CostTrackingService costTrackingService) {
             return prompt -> {
                 costTrackingService.logCompletionUsage("gpt-4o-mini", 100, 50, null);
-                return new LlmClient.LlmResult(
+                return new ChatCompletionClient.ChatCompletionResult(
                     "{\"summary\":\"Test summary\", \"riskFactors\":[], \"confidenceScore\":1.0}",
                     "gpt-4o-mini",
                     100,

@@ -1,8 +1,6 @@
 package com.walshe.aimarket.web.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,11 +14,11 @@ import com.walshe.aimarket.repository.DocumentChunkRepository;
 import com.walshe.aimarket.repository.DocumentRepository;
 import com.walshe.aimarket.repository.UserRepository;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.LlmClient;
+import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.dto.AnalysisRequestDTO;
 import com.walshe.aimarket.web.rest.vm.LoginVM;
 import java.time.Instant;
-import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,8 +71,8 @@ class AnalysisResourceIT {
 
         @Bean
         @Primary
-        LlmClient llmClient() {
-            return prompt -> new LlmClient.LlmResult(
+        ChatCompletionClient llmClient() {
+            return prompt -> new ChatCompletionClient.ChatCompletionResult(
                 "{\"summary\":\"Growth of 20% detected.\", \"riskFactors\":[\"Economic slowdown\"], \"confidenceScore\":0.95}",
                 "gpt-4o",
                 100,

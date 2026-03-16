@@ -1,23 +1,23 @@
-package com.walshe.aimarket.service.impl;
+package com.walshe.aimarket.service.impl.openai;
 
 import com.walshe.aimarket.config.LlmProperties;
 import com.walshe.aimarket.service.CostTrackingService;
-import com.walshe.aimarket.service.LlmClient;
+import com.walshe.aimarket.service.ChatCompletionClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 /**
- * OpenAI implementation of {@link LlmClient} using chat completions API.
+ * OpenAI implementation of {@link ChatCompletionClient} using chat completions API.
  */
 @Service
-class OpenAiLlmClient implements LlmClient {
+public class OpenAiChatCompletionClient implements ChatCompletionClient {
 
     private final RestClient restClient;
     private final LlmProperties properties;
     private final CostTrackingService costTrackingService;
 
-    OpenAiLlmClient(RestClient.Builder restClientBuilder, LlmProperties properties, CostTrackingService costTrackingService) {
+    OpenAiChatCompletionClient(RestClient.Builder restClientBuilder, LlmProperties properties, CostTrackingService costTrackingService) {
         this.properties = properties;
         this.costTrackingService = costTrackingService;
         this.restClient = restClientBuilder
@@ -27,12 +27,12 @@ class OpenAiLlmClient implements LlmClient {
     }
 
     @Override
-    public LlmResult generate(String prompt) {
+    public ChatCompletionResult generate(String prompt) {
         return generate(prompt, null);
     }
 
     @Override
-    public LlmResult generate(String prompt, String correlationId) {
+    public ChatCompletionResult generate(String prompt, String correlationId) {
         ChatCompletionRequest request = new ChatCompletionRequest(
             properties.modelName(),
             new Message[] { new Message("user", prompt) }
@@ -70,7 +70,7 @@ class OpenAiLlmClient implements LlmClient {
             );
         }
 
-        return new LlmResult(content, modelUsed, promptTokens, completionTokens, totalTokens);
+        return new ChatCompletionResult(content, modelUsed, promptTokens, completionTokens, totalTokens);
     }
 
     private record ChatCompletionRequest(String model, Message[] messages) {}

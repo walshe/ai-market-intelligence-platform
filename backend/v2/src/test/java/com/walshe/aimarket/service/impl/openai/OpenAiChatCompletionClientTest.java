@@ -1,8 +1,8 @@
-package com.walshe.aimarket.service.impl;
+package com.walshe.aimarket.service.impl.openai;
 
 import com.walshe.aimarket.config.LlmProperties;
 import com.walshe.aimarket.service.CostTrackingService;
-import com.walshe.aimarket.service.LlmClient;
+import com.walshe.aimarket.service.ChatCompletionClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
@@ -18,7 +18,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import org.springframework.http.HttpMethod;
 
-class OpenAiLlmClientTest {
+class OpenAiChatCompletionClientTest {
 
     @Test
     void happyPath_parsesContentAndUsage() {
@@ -27,7 +27,7 @@ class OpenAiLlmClientTest {
         CostTrackingService costTrackingService = mock(CostTrackingService.class);
 
         LlmProperties props = new LlmProperties("test-key", "gpt-4o-mini", "https://api.openai.com");
-        OpenAiLlmClient client = new OpenAiLlmClient(builder, props, costTrackingService);
+        OpenAiChatCompletionClient client = new OpenAiChatCompletionClient(builder, props, costTrackingService);
 
         String responseJson = """
             {"id":"chatcmpl-123","object":"chat.completion","created":1694268190,
@@ -40,7 +40,7 @@ class OpenAiLlmClientTest {
             .andExpect(method(HttpMethod.POST))
             .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
 
-        LlmClient.LlmResult result = client.generate("prompt");
+        ChatCompletionClient.ChatCompletionResult result = client.generate("prompt");
 
         assertThat(result.content()).isEqualTo("Hello world");
         assertThat(result.modelUsed()).isEqualTo("gpt-4o-mini");
@@ -59,7 +59,7 @@ class OpenAiLlmClientTest {
         CostTrackingService costTrackingService = mock(CostTrackingService.class);
 
         LlmProperties props = new LlmProperties("test-key", "gpt-4o-mini", "https://api.openai.com");
-        OpenAiLlmClient client = new OpenAiLlmClient(builder, props, costTrackingService);
+        OpenAiChatCompletionClient client = new OpenAiChatCompletionClient(builder, props, costTrackingService);
 
         String responseJson = "{}";
 

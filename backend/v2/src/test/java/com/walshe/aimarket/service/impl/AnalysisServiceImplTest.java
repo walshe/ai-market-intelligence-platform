@@ -2,7 +2,7 @@ package com.walshe.aimarket.service.impl;
 
 import com.walshe.aimarket.domain.DocumentChunk;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.LlmClient;
+import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.PromptBuilderService;
 import com.walshe.aimarket.service.RetrievalService;
 import com.walshe.aimarket.service.dto.AnalysisResponseDTO;
@@ -18,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -37,7 +36,7 @@ class AnalysisServiceImplTest {
     private PromptBuilderService promptBuilderService;
 
     @Mock
-    private LlmClient llmClient;
+    private ChatCompletionClient llmClient;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -54,12 +53,12 @@ class AnalysisServiceImplTest {
         String mockPrompt = "System: ... Context: ... Query: " + query;
         String mockJsonResponse = "{\"summary\":\"Good\",\"riskFactors\":[],\"confidenceScore\":0.9}";
 
-        LlmClient.LlmResult mockLlmResult = new LlmClient.LlmResult(mockJsonResponse, "gpt-4", 40, 60, 100);
+        ChatCompletionClient.ChatCompletionResult mockLlmResult = new ChatCompletionClient.ChatCompletionResult(mockJsonResponse, "gpt-4", 40, 60, 100);
 
-        when(embeddingService.embed(query)).thenReturn(mockEmbedding);
+        when(embeddingService.embed(eq(query), eq(null), eq(null))).thenReturn(mockEmbedding);
         when(retrievalService.retrieveSimilar(eq(mockEmbedding), eq(5))).thenReturn(mockChunks);
         when(promptBuilderService.buildPrompt(query, mockChunks)).thenReturn(mockPrompt);
-        when(llmClient.generate(mockPrompt)).thenReturn(mockLlmResult);
+        when(llmClient.generate(eq(mockPrompt), eq(null))).thenReturn(mockLlmResult);
 
         // Mock JSON parsing
         JsonNode mockRootNode = mock(JsonNode.class);
@@ -89,9 +88,9 @@ class AnalysisServiceImplTest {
         assertThat(result.modelUsed()).isEqualTo("gpt-4");
         assertThat(result.tokensUsed()).isEqualTo(100);
 
-        verify(embeddingService).embed(query);
+        verify(embeddingService).embed(eq(query), eq(null), eq(null));
         verify(retrievalService).retrieveSimilar(eq(mockEmbedding), eq(5));
         verify(promptBuilderService).buildPrompt(query, mockChunks);
-        verify(llmClient).generate(mockPrompt);
+        verify(llmClient).generate(eq(mockPrompt), eq(null));
     }
 }

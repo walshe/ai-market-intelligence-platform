@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.walshe.aimarket.domain.DocumentChunk;
 import com.walshe.aimarket.service.AnalysisService;
 import com.walshe.aimarket.service.EmbeddingService;
-import com.walshe.aimarket.service.LlmClient;
+import com.walshe.aimarket.service.ChatCompletionClient;
 import com.walshe.aimarket.service.PromptBuilderService;
 import com.walshe.aimarket.service.RetrievalService;
 import com.walshe.aimarket.service.dto.AnalysisResponseDTO;
@@ -30,14 +30,14 @@ class AnalysisServiceImpl implements AnalysisService {
     private final EmbeddingService embeddingService;
     private final RetrievalService retrievalService;
     private final PromptBuilderService promptBuilderService;
-    private final LlmClient llmClient;
+    private final ChatCompletionClient llmClient;
     private final ObjectMapper objectMapper;
 
     AnalysisServiceImpl(
         EmbeddingService embeddingService,
         RetrievalService retrievalService,
         PromptBuilderService promptBuilderService,
-        LlmClient llmClient,
+        ChatCompletionClient llmClient,
         ObjectMapper objectMapper
     ) {
         this.embeddingService = embeddingService;
@@ -68,7 +68,7 @@ class AnalysisServiceImpl implements AnalysisService {
 
         // 4) Call LLM
         LOG.debug("completion generation started correlationId={}", correlationId);
-        LlmClient.LlmResult llmResult = llmClient.generate(prompt, correlationId);
+        ChatCompletionClient.ChatCompletionResult llmResult = llmClient.generate(prompt, correlationId);
 
         // 5) Parse JSON response (enforce required fields)
         ParsedModelResponse parsed = parseModelJson(llmResult.content());

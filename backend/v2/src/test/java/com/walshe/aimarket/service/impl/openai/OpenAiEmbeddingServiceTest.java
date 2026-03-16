@@ -1,4 +1,4 @@
-package com.walshe.aimarket.service.impl;
+package com.walshe.aimarket.service.impl.openai;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
