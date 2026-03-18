@@ -28,6 +28,8 @@ public class OpenAIEmbeddingClient implements EmbeddingClient {
 
     @Override
     public float[] generateEmbedding(String text) {
+        // Use the configured EMBEDDING model (e.g. text-embedding-3-small)
+        // This model converts text to a mathematical vector for semantic search.
         EmbeddingRequest request = new EmbeddingRequest(properties.modelName(), text);
 
         long start = System.currentTimeMillis();

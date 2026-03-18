@@ -72,6 +72,15 @@ public class CostLogConsumer {
 
     private BigDecimal calculateEmbeddingCost(String modelName, Integer tokens) {
         AiPricingProperties.ModelPricing pricing = aiPricingProperties.getModels().get(modelName);
+        if (pricing == null) {
+            // Try prefix matching
+            pricing = aiPricingProperties.getModels().entrySet().stream()
+                .filter(entry -> modelName.startsWith(entry.getKey()))
+                .map(java.util.Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+        }
+
         if (pricing == null || pricing.getEmbeddingCostPer1kTokens() == null) {
             log.warn("No embedding pricing found for model: {}", modelName);
             return BigDecimal.ZERO;
@@ -83,6 +92,15 @@ public class CostLogConsumer {
 
     private BigDecimal calculateCompletionCost(String modelName, Integer inputTokens, Integer outputTokens) {
         AiPricingProperties.ModelPricing pricing = aiPricingProperties.getModels().get(modelName);
+        if (pricing == null) {
+            // Try prefix matching (e.g., "gpt-4o-mini-2024-07-18" should match "gpt-4o-mini")
+            pricing = aiPricingProperties.getModels().entrySet().stream()
+                .filter(entry -> modelName.startsWith(entry.getKey()))
+                .map(java.util.Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+        }
+
         if (pricing == null) {
             log.warn("No pricing found for model: {}", modelName);
             return BigDecimal.ZERO;

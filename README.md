@@ -174,6 +174,9 @@ This triggers:
 
 Run semantic queries against your ingested documents:
 
+#### Standard Analysis (Blocking)
+Returns a structured JSON response once the full generation is complete.
+
 ```bash
 POST /api/v1/analysis
 {
@@ -181,6 +184,22 @@ POST /api/v1/analysis
   "topK": 5
 }
 ```
+
+#### Streaming Analysis (Real-time)
+Returns a `text/event-stream` (Server-Sent Events) providing immediate feedback.
+
+```bash
+POST /api/v1/analysis/stream
+{
+  "query": "How was the growth in Q4?",
+  "topK": 5
+}
+```
+
+**Why use streaming?**
+*   **Reduced Perceived Latency**: See tokens as they are generated instead of waiting for a full JSON response.
+*   **Interactive UX**: Ideal for building "typewriter" style chat interfaces.
+*   **Typed Events**: Emits `token` (content), `done` (completion), and `error` (failures) for robust client handling.
 
 ### Cost Governance
 
@@ -248,15 +267,17 @@ Analysis query (regular):
 
 Analysis query (streaming):
 
+To experience the "typewriter" effect in your terminal (macOS/Linux):
+
     curl -X 'POST' \
       'http://localhost:8080/api/v1/analysis/stream' \
       -H 'accept: text/event-stream' \
-      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjI3MjE4NCwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNjgwMTg0LCJ1c2VySWQiOjF9.6u5pAA6blBY9KLhKnvh5pVWxg9rMWesnUq_5f6I0hoqvvN8xwlzSIUHffegMb2WwkcQoWxWiF4EmesN8dnHFVA' \
+      -H 'Authorization: Bearer <TOKEN>' \
       -H 'Content-Type: application/json' \
       -d '{
         "query": "Whats the news on Strategy today re Bitcoin?",
         "topK": 2
-      }'
+      }' -N | sed -l -n 's/^data: //p' | perl -ne 'BEGIN { $| = 1 } foreach (split //) { print; select(undef, undef, undef, 0.02); }'
       
 
 

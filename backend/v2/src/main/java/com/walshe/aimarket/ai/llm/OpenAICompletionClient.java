@@ -39,6 +39,8 @@ public class OpenAICompletionClient implements LLMCompletionClient {
     public CompletionResponse complete(String prompt, String correlationId) {
         long startTime = System.currentTimeMillis();
 
+        // Use the configured COMPLETION model (e.g. gpt-4o-mini)
+        // This is separate from the embedding model and specialized for reasoning and text generation.
         ChatCompletionRequest request = new ChatCompletionRequest(
             properties.openai().modelName(),
             new Message[] { new Message("user", prompt) }

@@ -209,7 +209,10 @@ class AnalysisResourceIT {
                     .content(om.writeValueAsBytes(request))
             )
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
+            .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("event:token")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("data:{\"summary\":\"Growth of 20% detected.\", \"riskFactors\":[\"Economic slowdown\"], \"confidenceScore\":0.95}")))
+            .andExpect(content().string(org.hamcrest.Matchers.containsString("event:done")));
     }
 
     @Test

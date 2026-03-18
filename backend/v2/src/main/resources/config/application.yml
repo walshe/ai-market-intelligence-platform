@@ -207,6 +207,9 @@ ai:
       gpt-4o-mini:
         inputCostPer1kTokens: 0.00015
         outputCostPer1kTokens: 0.00060
+      gpt-4o-mini-2024-07-18:
+        inputCostPer1kTokens: 0.00015
+        outputCostPer1kTokens: 0.00060
       anthropic.claude-3-sonnet-20240229-v1:0:
         inputCostPer1kTokens: 0.003
         outputCostPer1kTokens: 0.015

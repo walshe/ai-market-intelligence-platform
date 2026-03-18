@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -62,17 +63,17 @@ class AnalysisServiceImpl implements AnalysisService {
     public AnalysisResponseDTO analyze(String query, Integer topK, String correlationId) {
         LOG.info("analysis request started correlationId={}", correlationId);
 
-        // 1) Embed query
-        LOG.debug("query embedding started correlationId={}", correlationId);
-        float[] queryEmbedding = embeddingClient.generateEmbedding(query);
+        // 1 & 2) Step 1: Convert query to vector using the EMBEDDING model
+        // and retrieve topK chunks from the vector database.
+        // This is the first AI model call in the RAG flow.
+        List<DocumentChunk> similarChunks = retrieveContext(query, topK, correlationId);
 
-        // 2) Retrieve topK chunks
-        List<DocumentChunk> similarChunks = retrievalService.retrieveSimilar(queryEmbedding, topK);
-
-        // 3) Build prompt
+        // 3) Build prompt with retrieved context
         String prompt = promptBuilderService.buildPrompt(query, similarChunks);
 
-        // 4) Call LLM
+        // 4) Step 2: Pass the context + query to the COMPLETION model (LLM)
+        // to generate the final human-readable answer.
+        // This is the second AI model call in the RAG flow, intended for reasoning.
         LOG.debug("completion generation started correlationId={}", correlationId);
         CompletionResponse llmResult = llmClient.complete(prompt, correlationId);
 
@@ -92,22 +93,40 @@ class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public Flux<String> streamAnalysis(String query, Integer topK, String correlationId) {
+    public Flux<ServerSentEvent<String>> streamAnalysis(String query, Integer topK, String correlationId) {
         LOG.info("stream analysis request started correlationId={}", correlationId);
 
-        // 1) Embed query
-        float[] queryEmbedding = embeddingClient.generateEmbedding(query);
+        // 1 & 2) Step 1: Convert query to vector using the EMBEDDING model
+        // and retrieve topK chunks from the vector database.
+        List<DocumentChunk> similarChunks = retrieveContext(query, topK, correlationId);
 
-        // 2) Retrieve context
-        List<DocumentChunk> similarChunks = retrievalService.retrieveSimilar(queryEmbedding, topK);
-
-        // 3) Build prompt
+        // 3) Build prompt with retrieved context
         String prompt = promptBuilderService.buildStreamingPrompt(query, similarChunks);
 
-        // 4) Return stream
+        // 4) Step 2: Stream tokens from the COMPLETION model (LLM)
         return llmClient.streamCompletion(prompt, correlationId)
-            .doOnComplete(() -> LOG.info("stream analysis request completed correlationId={}", correlationId))
-            .doOnError(e -> LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage()));
+            .map(token -> ServerSentEvent.<String>builder()
+                .event("token")
+                .data(token)
+                .build())
+            .concatWith(Flux.just(ServerSentEvent.<String>builder()
+                .event("done")
+                .data("")
+                .build()))
+            .onErrorResume(e -> {
+                LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage());
+                return Flux.just(ServerSentEvent.<String>builder()
+                    .event("error")
+                    .data(e.getMessage())
+                    .build());
+            })
+            .doOnComplete(() -> LOG.info("stream analysis request completed correlationId={}", correlationId));
+    }
+
+    private List<DocumentChunk> retrieveContext(String query, Integer topK, String correlationId) {
+        LOG.debug("query embedding started correlationId={}", correlationId);
+        float[] queryEmbedding = embeddingClient.generateEmbedding(query);
+        return retrievalService.retrieveSimilar(queryEmbedding, topK);
     }
 
     private ParsedModelResponse parseModelJson(String content) {

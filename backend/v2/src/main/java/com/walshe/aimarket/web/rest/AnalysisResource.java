@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,7 +44,7 @@ class AnalysisResource {
     }
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    Flux<String> streamAnalysis(@Valid @RequestBody AnalysisRequestDTO request) {
+    Flux<ServerSentEvent<String>> streamAnalysis(@Valid @RequestBody AnalysisRequestDTO request) {
         String correlationId = UUID.randomUUID().toString();
         LOG.info("stream analysis request started correlationId={}", correlationId);
         return analysisService.streamAnalysis(request.query(), request.topK(), correlationId);

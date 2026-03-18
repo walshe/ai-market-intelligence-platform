@@ -107,4 +107,51 @@ class CostTrackingKafkaIntTest {
                 assertThat(lastLog.getEstimatedUsdCost()).isGreaterThan(java.math.BigDecimal.ZERO);
             });
     }
+
+    @Test
+    void shouldHandleVersionedModelNameWithPrefixMatch() {
+        // Given
+        int initialCount = costLogRepository.findAll().size();
+        String versionedModelName = "gpt-4o-mini-2024-07-18";
+        Integer inputTokens = 200;
+        Integer outputTokens = 300;
+        String correlationId = "770e8400-e29b-41d4-a716-446655440000";
+
+        // When
+        costTrackingService.logCompletionUsage(versionedModelName, inputTokens, outputTokens, correlationId, "openai", 456L);
+
+        // Then
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .untilAsserted(() -> {
+                List<CostLog> costLogs = costLogRepository.findAll();
+                assertThat(costLogs).hasSize(initialCount + 1);
+                CostLog lastLog = costLogs.get(costLogs.size() - 1);
+                assertThat(lastLog.getModelName()).isEqualTo(versionedModelName);
+                assertThat(lastLog.getEstimatedUsdCost()).isGreaterThan(java.math.BigDecimal.ZERO);
+            });
+    }
+
+    @Test
+    void shouldHandleVersionedEmbeddingModelNameWithPrefixMatch() {
+        // Given
+        int initialCount = costLogRepository.findAll().size();
+        String versionedModelName = "text-embedding-3-small-v1";
+        Integer inputTokens = 100;
+        String correlationId = "880e8400-e29b-41d4-a716-446655440000";
+
+        // When
+        costTrackingService.logEmbeddingUsage(versionedModelName, inputTokens, null, correlationId, "openai", 123L);
+
+        // Then
+        await()
+            .atMost(Duration.ofSeconds(10))
+            .untilAsserted(() -> {
+                List<CostLog> costLogs = costLogRepository.findAll();
+                assertThat(costLogs).hasSize(initialCount + 1);
+                CostLog lastLog = costLogs.get(costLogs.size() - 1);
+                assertThat(lastLog.getModelName()).isEqualTo(versionedModelName);
+                assertThat(lastLog.getEstimatedUsdCost()).isGreaterThan(java.math.BigDecimal.ZERO);
+            });
+    }
 }
