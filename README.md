@@ -269,14 +269,14 @@ Analysis query (streaming):
 
 To experience the "typewriter" effect in your terminal (macOS/Linux):
 
-    curl -X 'POST' \
+    curl -X 'POST' \                                                                                                                                                                                      ─╯
       'http://localhost:8080/api/v1/analysis/stream' \
       -H 'accept: text/event-stream' \
-      -H 'Authorization: Bearer <TOKEN>' \
+      -H 'Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc3NjI3MjE4NCwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzczNjgwMTg0LCJ1c2VySWQiOjF9.6u5pAA6blBY9KLhKnvh5pVWxg9rMWesnUq_5f6I0hoqvvN8xwlzSIUHffegMb2WwkcQoWxWiF4EmesN8dnHFVA' \
       -H 'Content-Type: application/json' \
-      -d '{
+      -d '{                                                     
         "query": "Whats the news on Strategy today re Bitcoin?",
-        "topK": 2
+        "topK": 2                                                                                                                    
       }' -N | sed -l -n 's/^data: //p' | perl -ne 'BEGIN { $| = 1 } foreach (split //) { print; select(undef, undef, undef, 0.02); }'
       
 

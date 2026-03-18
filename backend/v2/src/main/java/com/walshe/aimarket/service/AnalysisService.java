@@ -30,12 +30,12 @@ public interface AnalysisService {
     }
 
     /**
-     * Stream analysis results as text tokens as Server Sent Events.
+     * Stream analysis results as text tokens.
      *
      * @param query user query string
      * @param topK optional override for retrieval count
      * @param correlationId (optional) the correlation ID for grouping calls
-     * @return a Flux of SSE chunks
+     * @return a Flux of tokens
      */
-    Flux<org.springframework.http.codec.ServerSentEvent<String>> streamAnalysis(String query, Integer topK, String correlationId);
+    Flux<String> streamAnalysis(String query, Integer topK, String correlationId);
 }

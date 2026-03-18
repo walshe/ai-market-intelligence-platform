@@ -4,6 +4,7 @@ import com.walshe.aimarket.config.ApplicationProperties;
 import com.walshe.aimarket.config.CRLFLogConverter;
 import com.walshe.aimarket.config.EmbeddingProperties;
 import com.walshe.aimarket.config.LlmProperties;
+import com.walshe.aimarket.config.PromptProperties;
 import com.walshe.aimarket.config.RetrievalProperties;
 import jakarta.annotation.PostConstruct;
 import java.net.InetAddress;
@@ -30,7 +31,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 
 @SpringBootApplication
 @EnableKafka
-@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, EmbeddingProperties.class, LlmProperties.class, RetrievalProperties.class })
+@EnableConfigurationProperties({ LiquibaseProperties.class, ApplicationProperties.class, EmbeddingProperties.class, LlmProperties.class, RetrievalProperties.class, PromptProperties.class })
 public class AiMarketIntelligenceApp {
 
     private static final Logger LOG = LoggerFactory.getLogger(AiMarketIntelligenceApp.class);

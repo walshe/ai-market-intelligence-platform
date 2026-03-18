@@ -47,6 +47,21 @@ class AnalysisResource {
     Flux<ServerSentEvent<String>> streamAnalysis(@Valid @RequestBody AnalysisRequestDTO request) {
         String correlationId = UUID.randomUUID().toString();
         LOG.info("stream analysis request started correlationId={}", correlationId);
-        return analysisService.streamAnalysis(request.query(), request.topK(), correlationId);
+        return analysisService.streamAnalysis(request.query(), request.topK(), correlationId)
+            .map(token -> ServerSentEvent.<String>builder()
+                .event("token")
+                .data(token)
+                .build())
+            .concatWith(Flux.just(ServerSentEvent.<String>builder()
+                .event("done")
+                .data("")
+                .build()))
+            .onErrorResume(e -> {
+                LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage());
+                return Flux.just(ServerSentEvent.<String>builder()
+                    .event("error")
+                    .data(e.getMessage())
+                    .build());
+            });
     }
 }

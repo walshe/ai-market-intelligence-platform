@@ -93,34 +93,22 @@ class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public Flux<ServerSentEvent<String>> streamAnalysis(String query, Integer topK, String correlationId) {
+    public Flux<String> streamAnalysis(String query, Integer topK, String correlationId) {
         LOG.info("stream analysis request started correlationId={}", correlationId);
 
-        // 1 & 2) Step 1: Convert query to vector using the EMBEDDING model
-        // and retrieve topK chunks from the vector database.
-        List<DocumentChunk> similarChunks = retrieveContext(query, topK, correlationId);
+        // 1) Embed query
+        float[] queryEmbedding = embeddingClient.generateEmbedding(query);
 
-        // 3) Build prompt with retrieved context
+        // 2) Retrieve context
+        List<DocumentChunk> similarChunks = retrievalService.retrieveSimilar(queryEmbedding, topK);
+
+        // 3) Build prompt
         String prompt = promptBuilderService.buildStreamingPrompt(query, similarChunks);
 
-        // 4) Step 2: Stream tokens from the COMPLETION model (LLM)
+        // 4) Return stream
         return llmClient.streamCompletion(prompt, correlationId)
-            .map(token -> ServerSentEvent.<String>builder()
-                .event("token")
-                .data(token)
-                .build())
-            .concatWith(Flux.just(ServerSentEvent.<String>builder()
-                .event("done")
-                .data("")
-                .build()))
-            .onErrorResume(e -> {
-                LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage());
-                return Flux.just(ServerSentEvent.<String>builder()
-                    .event("error")
-                    .data(e.getMessage())
-                    .build());
-            })
-            .doOnComplete(() -> LOG.info("stream analysis request completed correlationId={}", correlationId));
+            .doOnComplete(() -> LOG.info("stream analysis request completed correlationId={}", correlationId))
+            .doOnError(e -> LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage()));
     }
 
     private List<DocumentChunk> retrieveContext(String query, Integer topK, String correlationId) {

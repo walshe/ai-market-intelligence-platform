@@ -142,12 +142,12 @@ public class OpenAICompletionClient implements LLMCompletionClient {
 
     private record Choice(int index, Message message, Object logprobs, String finish_reason) {}
 
-    private record Usage(int prompt_tokens, int completion_tokens, int total_tokens) {}
+    record Usage(int prompt_tokens, int completion_tokens, int total_tokens) {}
 
-    private record ChatStreamResponse(String id, String object, long created, String model,
+    record ChatStreamResponse(String id, String object, long created, String model,
                                       StreamChoice[] choices, Usage usage) {}
 
-    private record StreamChoice(int index, Delta delta, String finish_reason) {}
+    record StreamChoice(int index, Delta delta, String finish_reason) {}
 
-    private record Delta(String content) {}
+    record Delta(String content) {}
 }
