@@ -70,12 +70,13 @@ class OpenAICompletionClientTest {
             org.springframework.web.client.RestClient.builder(),
             webClientBuilder,
             properties,
-            costTrackingService
+            costTrackingService,
+            objectMapper
         );
     }
 
     @Test
-    void streamCompletion_shouldParseSSEStreamCorrectly() {
+    void streamCompletion_shouldParseSSEStreamCorrectly() throws Exception {
         String prompt = "Hello";
         String correlationId = "test-id";
 
@@ -86,6 +87,7 @@ class OpenAICompletionClientTest {
         when(requestBodyUriSpec.uri("/v1/chat/completions")).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.accept(MediaType.TEXT_EVENT_STREAM)).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.bodyToFlux(ChatStreamResponse.class)).thenReturn(Flux.just(chunk1, chunk2));
 
@@ -96,7 +98,7 @@ class OpenAICompletionClientTest {
     }
 
     @Test
-    void streamCompletion_shouldHandleUsageInSeparateChunk() {
+    void streamCompletion_shouldHandleUsageInSeparateChunk() throws Exception {
         String prompt = "Hello";
         String correlationId = "test-id";
 
@@ -107,6 +109,7 @@ class OpenAICompletionClientTest {
         when(requestBodyUriSpec.uri("/v1/chat/completions")).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.accept(MediaType.TEXT_EVENT_STREAM)).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.bodyToFlux(ChatStreamResponse.class)).thenReturn(Flux.just(chunk1, chunk2));
 

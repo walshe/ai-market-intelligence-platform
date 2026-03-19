@@ -28,7 +28,7 @@ public class PromptServiceImpl implements PromptService {
              throw new IllegalArgumentException("Prompt definitions are not loaded. Check application configuration.");
         }
         if (!promptProperties.getDefinitions().containsKey(key)) {
-            LOG.error("Available prompt keys: {}", promptProperties.getDefinitions().keySet());
+            LOG.error("Available prompt keys in properties: {}", promptProperties.getDefinitions().keySet());
             throw new IllegalArgumentException("Prompt definition not found for key: " + key);
         }
         return promptProperties.getDefinitions().get(key);

@@ -1,6 +1,6 @@
 Follow docs/AI_EXECUTION_PROTOCOL.md.
-Story folder: ./stories/07.0-multi-provider-llm+streaming-support
-Implement Phase 8 only.
+Story folder: ./stories/06.0-prompt-governance
+Implement Phase 1 only.
 Stop after completion.
 
 

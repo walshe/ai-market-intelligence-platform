@@ -10,6 +10,8 @@ import com.walshe.aimarket.service.RetrievalService;
 import com.walshe.aimarket.service.dto.AnalysisResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.http.codec.ServerSentEvent;
+import reactor.core.publisher.Flux;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -104,5 +106,37 @@ class AnalysisServiceImplTest {
         verify(retrievalService).retrieveSimilar(eq(mockEmbedding), eq(5));
         verify(promptBuilderService).buildPrompt(query, mockChunks);
         verify(llmClient).complete(eq(mockPrompt), eq(null));
+    }
+
+    @Test
+    void streamAnalysis_shouldStreamSseEvents() {
+        // Given
+        String query = "financial analysis for Q4";
+        float[] mockEmbedding = new float[]{0.1f, 0.2f};
+        List<DocumentChunk> mockChunks = Collections.emptyList();
+        String mockPrompt = "System: ... Context: ... Query: " + query;
+        String correlationId = "test-id";
+
+        when(embeddingClient.generateEmbedding(eq(query))).thenReturn(mockEmbedding);
+        when(retrievalService.retrieveSimilar(eq(mockEmbedding), any())).thenReturn(mockChunks);
+        when(promptBuilderService.buildStreamingPrompt(eq(query), eq(mockChunks))).thenReturn(mockPrompt);
+        when(llmClient.streamCompletion(eq(mockPrompt), eq(correlationId))).thenReturn(Flux.just("token1", "token2"));
+
+        // When
+        Flux<ServerSentEvent<String>> result = analysisService.streamAnalysis(query, null, correlationId);
+
+        // Then
+        List<ServerSentEvent<String>> events = result.collectList().block();
+        assertThat(events).hasSize(3);
+        assertThat(events.get(0).event()).isEqualTo("token");
+        assertThat(events.get(0).data()).isEqualTo("token1");
+        assertThat(events.get(1).event()).isEqualTo("token");
+        assertThat(events.get(1).data()).isEqualTo("token2");
+        assertThat(events.get(2).event()).isEqualTo("done");
+
+        verify(embeddingClient).generateEmbedding(eq(query));
+        verify(retrievalService).retrieveSimilar(eq(mockEmbedding), any());
+        verify(promptBuilderService).buildStreamingPrompt(eq(query), eq(mockChunks));
+        verify(llmClient).streamCompletion(eq(mockPrompt), eq(correlationId));
     }
 }

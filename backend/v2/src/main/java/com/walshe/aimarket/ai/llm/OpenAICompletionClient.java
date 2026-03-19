@@ -1,7 +1,11 @@
 package com.walshe.aimarket.ai.llm;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.walshe.aimarket.config.LlmProperties;
 import com.walshe.aimarket.service.CostTrackingService;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,19 +16,24 @@ import reactor.core.publisher.Flux;
  */
 public class OpenAICompletionClient implements LLMCompletionClient {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OpenAICompletionClient.class);
+
     private final RestClient restClient;
     private final WebClient webClient;
     private final LlmProperties properties;
     private final CostTrackingService costTrackingService;
+    private final ObjectMapper objectMapper;
 
     public OpenAICompletionClient(
         RestClient.Builder restClientBuilder,
         WebClient.Builder webClientBuilder,
         LlmProperties properties,
-        CostTrackingService costTrackingService
+        CostTrackingService costTrackingService,
+        ObjectMapper objectMapper
     ) {
         this.properties = properties;
         this.costTrackingService = costTrackingService;
+        this.objectMapper = objectMapper;
         this.restClient = restClientBuilder
             .baseUrl(properties.openai().baseUrl())
             .defaultHeader("Authorization", "Bearer " + properties.openai().apiKey())
@@ -104,6 +113,7 @@ public class OpenAICompletionClient implements LLMCompletionClient {
             .uri("/v1/chat/completions")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(request)
+            .accept(MediaType.TEXT_EVENT_STREAM)
             .retrieve()
             .bodyToFlux(ChatStreamResponse.class)
             .doOnNext(response -> {

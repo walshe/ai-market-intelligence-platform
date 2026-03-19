@@ -93,7 +93,7 @@ class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public Flux<String> streamAnalysis(String query, Integer topK, String correlationId) {
+    public Flux<ServerSentEvent<String>> streamAnalysis(String query, Integer topK, String correlationId) {
         LOG.info("stream analysis request started correlationId={}", correlationId);
 
         // 1) Embed query
@@ -107,8 +107,22 @@ class AnalysisServiceImpl implements AnalysisService {
 
         // 4) Return stream
         return llmClient.streamCompletion(prompt, correlationId)
-            .doOnComplete(() -> LOG.info("stream analysis request completed correlationId={}", correlationId))
-            .doOnError(e -> LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage()));
+            .map(token -> ServerSentEvent.<String>builder()
+                .event("token")
+                .data(token)
+                .build())
+            .concatWith(Flux.just(ServerSentEvent.<String>builder()
+                .event("done")
+                .data("")
+                .build()))
+            .onErrorResume(e -> {
+                LOG.error("stream analysis error correlationId={}: {}", correlationId, e.getMessage());
+                return Flux.just(ServerSentEvent.<String>builder()
+                    .event("error")
+                    .data(e.getMessage())
+                    .build());
+            })
+            .doOnComplete(() -> LOG.info("stream analysis request completed correlationId={}", correlationId));
     }
 
     private List<DocumentChunk> retrieveContext(String query, Integer topK, String correlationId) {

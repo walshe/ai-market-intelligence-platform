@@ -29,10 +29,11 @@ class LLMProviderConfiguration {
     LLMCompletionClient openAICompletionClient(
         RestClient.Builder restClientBuilder,
         WebClient.Builder webClientBuilder,
-        CostTrackingService costTrackingService
+        CostTrackingService costTrackingService,
+        ObjectMapper objectMapper
     ) {
         LOG.info("Configuring OpenAI completion client for model: {}", properties.openai().modelName());
-        return new OpenAICompletionClient(restClientBuilder, webClientBuilder, properties, costTrackingService);
+        return new OpenAICompletionClient(restClientBuilder, webClientBuilder, properties, costTrackingService, objectMapper);
     }
 
     @Bean
